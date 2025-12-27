@@ -14,7 +14,10 @@ add_library(glad src/glad.c)
 target_include_directories(glad PUBLIC include)
 
 # Add executable
-add_executable(ParticleSimulator src/main.cpp)
+add_executable(ParticleSimulator 
+    src/main.cpp
+    src/Shader.cpp
+)
 
 # Include directories
 target_include_directories(ParticleSimulator PRIVATE ${CMAKE_SOURCE_DIR}/include)
