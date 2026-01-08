@@ -26,7 +26,7 @@ void updateParticles(int vbo);
 // settings
 constexpr unsigned int SCR_WIDTH = 1600;
 constexpr unsigned int SCR_HEIGHT = 1200;
-constexpr int particleCount = 100;
+constexpr int particleCount = 1000;
 
 std::vector<Particle> particles;
 
@@ -118,8 +118,13 @@ void initParticles()
     for (int i{}; i < particleCount; ++i)
     {
         Particle p;
-        p.velocity.x = Random::get(-0.001f, 0.001f);
-        p.velocity.y = Random::get(-0.001f, 0.001f);
+        glm::vec2 velocity {
+            Random::get(-1.0f, 1.0f),
+            Random::get(-1.0f, 1.0f)
+        };
+        const float speed = Random::get(0.0001f, 0.005f);
+        p.velocity = glm::normalize(velocity) * speed;
+
         particles.push_back(p);
     }
 }
