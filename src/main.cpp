@@ -1,28 +1,42 @@
 #include "Shader.h"
+#include "Random.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
 
 #include <iostream>
+
+struct Particle
+{
+    glm::vec2 position;
+    glm::vec2 velocity;
+    float timeAliveMS;
+
+    Particle() : position(0.0f), velocity(0.0f), timeAliveMS(0.0f) {}
+};
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
 
+void initParticles();
+void renderParticles(int vao);
+void updateParticles(int vbo);
+
 // settings
-const unsigned int SCR_WIDTH = 1600;
-const unsigned int SCR_HEIGHT = 1200;
+constexpr unsigned int SCR_WIDTH = 1600;
+constexpr unsigned int SCR_HEIGHT = 1200;
+constexpr int particleCount = 100;
+
+std::vector<Particle> particles;
 
 int main()
 {
-    // glfw: initialize and configure
-    // ------------------------------
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    // glfw window creation
-    // --------------------
     GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
     if (window == NULL)
     {
@@ -33,8 +47,6 @@ int main()
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-    // glad: load all OpenGL function pointers
-    // ---------------------------------------
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         std::cout << "Failed to initialize GLAD" << std::endl;
@@ -42,12 +54,6 @@ int main()
     }
 
     Shader shader("../shaders/vertex.vert", "../shaders/fragment.frag");
-   
-    const float vertices[] = {
-       -0.7f, -0.3f, 0.0f,
-        0.1f, -0.2f, 0.0f,
-        0.3f,  0.6f, 0.0f
-    };
 
     // VAO
     unsigned int vao;
@@ -60,9 +66,13 @@ int main()
 
     // Bind VBO and copy vertex data into buffer memory
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER,
+                 sizeof(Particle) * particleCount, // size of all particles in particle array (bytes)
+                 NULL,                            // pointer to actual particle data
+                 GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
+    // Position attribute
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Particle), (void *)0);
     glEnableVertexAttribArray(0);
 
     // Use Shader
@@ -70,46 +80,68 @@ int main()
 
     glEnable(GL_PROGRAM_POINT_SIZE);
 
-    // render loop
-    // -----------
+    initParticles();
+
     while (!glfwWindowShouldClose(window))
     {
-        // input
-        // -----
         processInput(window);
 
-        // render
-        // ------
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glDrawArrays(GL_POINTS, 0, 3);
+        updateParticles(vbo);
+        renderParticles(vao);
 
-        // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
-        // -------------------------------------------------------------------------------
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
-    // glfw: terminate, clearing all previously allocated GLFW resources.
-    // ------------------------------------------------------------------
     glfwTerminate();
     return 0;
 }
 
-// process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
-// ---------------------------------------------------------------------------------------------------------
 void processInput(GLFWwindow *window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 }
 
-// glfw: whenever the window size changed (by OS or user resize) this callback function executes
-// ---------------------------------------------------------------------------------------------
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 {
     // make sure the viewport matches the new window dimensions; note that width and
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
+}
+
+void initParticles()
+{
+    for (int i{}; i < particleCount; ++i)
+    {
+        Particle p;
+        p.velocity.x = Random::get(-0.001f, 0.001f);
+        p.velocity.y = Random::get(-0.001f, 0.001f);
+        particles.push_back(p);
+    }
+}
+
+void renderParticles(int vao)
+{
+    glBindVertexArray(vao);
+    glDrawArrays(GL_POINTS, 0, static_cast<int>(particles.size()));
+}
+
+void updateParticles(int vbo)
+{
+    for (int i{}; i < particleCount; ++i)
+    {
+        Particle &p = particles[i];
+        p.position.x += p.velocity.x;
+        p.position.y += p.velocity.y;
+    }
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER,
+                 sizeof(Particle) * particleCount, // size of all particles in particle array (bytes)
+                 particles.data(),                // pointer to actual particle data
+                 GL_STATIC_DRAW);
 }
