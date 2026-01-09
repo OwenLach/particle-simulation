@@ -4,8 +4,26 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include <iostream>
+
+void framebuffer_size_callback(GLFWwindow *window, int width, int height);
+void processInput(GLFWwindow *window);
+
+void initParticles();
+void renderParticles(unsigned int vao);
+void updateParticles(unsigned int vbo);
+
+// settings
+constexpr unsigned int SCR_WIDTH = 1400;
+constexpr unsigned int SCR_HEIGHT = 1200;
+constexpr int particleCount = 1000;
+
+// Creates a projection matrix that makes (0, 0) the top-left of the screen, y goes down
+const glm::mat4 projection{glm::ortho(0.0f, static_cast<float>(SCR_WIDTH),  // Left to right
+                                      static_cast<float>(SCR_HEIGHT), 0.0f, // Bottom to top
+                                      -1.0f, 1.0f)};                        // Near to far
 
 struct Particle
 {
@@ -13,21 +31,8 @@ struct Particle
     glm::vec2 velocity;
     float timeAliveMS;
 
-    Particle() : position(0.0f), velocity(0.0f), timeAliveMS(0.0f) {}
+    Particle() : position({static_cast<float>(SCR_WIDTH) / 2.0f, static_cast<float>(SCR_HEIGHT) / 2.0f}), velocity(0.0f), timeAliveMS(0.0f) {}
 };
-
-void framebuffer_size_callback(GLFWwindow *window, int width, int height);
-void processInput(GLFWwindow *window);
-
-void initParticles();
-void renderParticles(int vao);
-void updateParticles(int vbo);
-
-// settings
-constexpr unsigned int SCR_WIDTH = 1600;
-constexpr unsigned int SCR_HEIGHT = 1200;
-constexpr int particleCount = 1000;
-
 std::vector<Particle> particles;
 
 int main()
@@ -68,7 +73,7 @@ int main()
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER,
                  sizeof(Particle) * particleCount, // size of all particles in particle array (bytes)
-                 NULL,                            // pointer to actual particle data
+                 NULL,                             // pointer to actual particle data
                  GL_STATIC_DRAW);
 
     // Position attribute
@@ -77,6 +82,7 @@ int main()
 
     // Use Shader
     shader.use();
+    shader.setMat4("projection", projection);
 
     glEnable(GL_PROGRAM_POINT_SIZE);
 
@@ -103,13 +109,22 @@ int main()
 void processInput(GLFWwindow *window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    {
         glfwSetWindowShouldClose(window, true);
+    }
+
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT))
+    {
+        double cursorX{};
+        double cursorY{};
+        glfwGetCursorPos(window, &cursorX, &cursorY);
+        std::cout << "EMIT PARTICLES at X: " << cursorX << " Y: " << cursorY << '\n';
+    }
 }
 
-void framebuffer_size_callback(GLFWwindow *window, int width, int height)
+void framebuffer_size_callback([[maybe_unused]] GLFWwindow *window, int width, int height)
 {
-    // make sure the viewport matches the new window dimensions; note that width and
-    // height will be significantly larger than specified on retina displays.
+    (void)window;
     glViewport(0, 0, width, height);
 }
 
@@ -118,24 +133,23 @@ void initParticles()
     for (int i{}; i < particleCount; ++i)
     {
         Particle p;
-        glm::vec2 velocity {
+        glm::vec2 directionVec{
             Random::get(-1.0f, 1.0f),
-            Random::get(-1.0f, 1.0f)
-        };
-        const float speed = Random::get(0.0001f, 0.005f);
-        p.velocity = glm::normalize(velocity) * speed;
+            Random::get(-1.0f, 1.0f)};
+        const float speed = Random::get(0.01f, 0.5f);
+        p.velocity = glm::normalize(directionVec) * speed;
 
         particles.push_back(p);
     }
 }
 
-void renderParticles(int vao)
+void renderParticles(unsigned int vao)
 {
     glBindVertexArray(vao);
     glDrawArrays(GL_POINTS, 0, static_cast<int>(particles.size()));
 }
 
-void updateParticles(int vbo)
+void updateParticles(unsigned int vbo)
 {
     for (int i{}; i < particleCount; ++i)
     {
@@ -147,6 +161,6 @@ void updateParticles(int vbo)
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER,
                  sizeof(Particle) * particleCount, // size of all particles in particle array (bytes)
-                 particles.data(),                // pointer to actual particle data
+                 particles.data(),                 // pointer to actual particle data
                  GL_STATIC_DRAW);
 }
