@@ -13,12 +13,12 @@ void processInput(GLFWwindow *window);
 
 void initParticles();
 void renderParticles(unsigned int vao);
-void updateParticles(unsigned int vbo);
+void updateParticles(unsigned int vbo, float dt);
 
 // settings
 constexpr unsigned int SCR_WIDTH = 1400;
 constexpr unsigned int SCR_HEIGHT = 1200;
-constexpr int particleCount = 1000;
+constexpr int particleCount = 10'000;
 
 // Creates a projection matrix that makes (0, 0) the top-left of the screen, y goes down
 const glm::mat4 projection{glm::ortho(0.0f, static_cast<float>(SCR_WIDTH),  // Left to right
@@ -88,14 +88,20 @@ int main()
 
     initParticles();
 
+    float lastFrame = static_cast<float>(glfwGetTime());
+
     while (!glfwWindowShouldClose(window))
     {
+        float currentFrame = static_cast<float>(glfwGetTime());
+        float deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+
         processInput(window);
 
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        updateParticles(vbo);
+        updateParticles(vbo, deltaTime);
         renderParticles(vao);
 
         glfwSwapBuffers(window);
@@ -136,7 +142,7 @@ void initParticles()
         glm::vec2 directionVec{
             Random::get(-1.0f, 1.0f),
             Random::get(-1.0f, 1.0f)};
-        const float speed = Random::get(0.01f, 0.5f);
+        const float speed = Random::get(10.0f, 100.0f);
         p.velocity = glm::normalize(directionVec) * speed;
 
         particles.push_back(p);
@@ -149,13 +155,12 @@ void renderParticles(unsigned int vao)
     glDrawArrays(GL_POINTS, 0, static_cast<int>(particles.size()));
 }
 
-void updateParticles(unsigned int vbo)
+void updateParticles(unsigned int vbo, float dt)
 {
     for (int i{}; i < particleCount; ++i)
     {
         Particle &p = particles[i];
-        p.position.x += p.velocity.x;
-        p.position.y += p.velocity.y;
+        p.position += p.velocity * dt;
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
