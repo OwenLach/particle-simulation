@@ -16,9 +16,10 @@ void renderParticles(unsigned int vao);
 void updateParticles(unsigned int vbo, float dt);
 
 // settings
-constexpr unsigned int SCR_WIDTH = 1400;
-constexpr unsigned int SCR_HEIGHT = 1200;
-constexpr int particleCount = 10'000;
+constexpr unsigned int SCR_WIDTH{1400};
+constexpr unsigned int SCR_HEIGHT{1200};
+
+constexpr int particleCount{10'000};
 
 // Creates a projection matrix that makes (0, 0) the top-left of the screen, y goes down
 const glm::mat4 projection{glm::ortho(0.0f, static_cast<float>(SCR_WIDTH),  // Left to right
@@ -29,9 +30,9 @@ struct Particle
 {
     glm::vec2 position;
     glm::vec2 velocity;
-    float timeAliveMS;
+    float life;
 
-    Particle() : position({static_cast<float>(SCR_WIDTH) / 2.0f, static_cast<float>(SCR_HEIGHT) / 2.0f}), velocity(0.0f), timeAliveMS(0.0f) {}
+    Particle() : position({static_cast<float>(SCR_WIDTH) / 2.0f, static_cast<float>(SCR_HEIGHT) / 2.0f}), velocity(0.0f), life(0.0f) {}
 };
 std::vector<Particle> particles;
 
@@ -143,8 +144,9 @@ void initParticles()
             Random::get(-1.0f, 1.0f),
             Random::get(-1.0f, 1.0f)};
         const float speed = Random::get(10.0f, 100.0f);
-        p.velocity = glm::normalize(directionVec) * speed;
 
+        p.velocity = glm::normalize(directionVec) * speed;
+        p.life = Random::get(5.0f, 15.0f);
         particles.push_back(p);
     }
 }
@@ -160,7 +162,11 @@ void updateParticles(unsigned int vbo, float dt)
     for (int i{}; i < particleCount; ++i)
     {
         Particle &p = particles[i];
-        p.position += p.velocity * dt;
+        p.life -= dt;
+        if (p.life > 0)
+        {
+            p.position += p.velocity * dt;
+        }
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
