@@ -11,15 +11,21 @@
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
 
+struct Particle;
+
 void initParticles();
 void renderParticles(unsigned int vao);
 void updateParticles(unsigned int vbo, float dt);
+void emitParticles(int x, int y);
+void spawnParticleAt(Particle &p, int x, int y);
 
 // settings
 constexpr unsigned int SCR_WIDTH{1400};
 constexpr unsigned int SCR_HEIGHT{1200};
 
-constexpr int particleCount{10'000};
+constexpr int maxParticles{10'000};
+constexpr int particlesPerFrame{4};
+int particleIndex{0};
 
 // Creates a projection matrix that makes (0, 0) the top-left of the screen, y goes down
 const glm::mat4 projection{glm::ortho(0.0f, static_cast<float>(SCR_WIDTH),  // Left to right
@@ -73,8 +79,8 @@ int main()
     // Bind VBO and copy vertex data into buffer memory
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER,
-                 sizeof(Particle) * particleCount, // size of all particles in particle array (bytes)
-                 NULL,                             // pointer to actual particle data
+                 sizeof(Particle) * maxParticles, // size of all particles in particle array (bytes)
+                 NULL,                            // pointer to actual particle data
                  GL_STATIC_DRAW);
 
     // Position attribute
@@ -99,9 +105,6 @@ int main()
 
         processInput(window);
 
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-
         updateParticles(vbo, deltaTime);
         renderParticles(vao);
 
@@ -125,7 +128,8 @@ void processInput(GLFWwindow *window)
         double cursorX{};
         double cursorY{};
         glfwGetCursorPos(window, &cursorX, &cursorY);
-        std::cout << "EMIT PARTICLES at X: " << cursorX << " Y: " << cursorY << '\n';
+        // std::cout << "(" << cursorX << ", " << cursorY << ")\n";
+        emitParticles(static_cast<int>(cursorX), static_cast<int>(cursorY));
     }
 }
 
@@ -137,41 +141,65 @@ void framebuffer_size_callback([[maybe_unused]] GLFWwindow *window, int width, i
 
 void initParticles()
 {
-    for (int i{}; i < particleCount; ++i)
+    particles.reserve(maxParticles);
+
+    for (int i{}; i < maxParticles; ++i)
     {
         Particle p;
-        glm::vec2 directionVec{
-            Random::get(-1.0f, 1.0f),
-            Random::get(-1.0f, 1.0f)};
-        const float speed = Random::get(10.0f, 100.0f);
-
-        p.velocity = glm::normalize(directionVec) * speed;
-        p.life = Random::get(5.0f, 15.0f);
         particles.push_back(p);
     }
 }
 
 void renderParticles(unsigned int vao)
 {
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+
     glBindVertexArray(vao);
     glDrawArrays(GL_POINTS, 0, static_cast<int>(particles.size()));
 }
 
 void updateParticles(unsigned int vbo, float dt)
 {
-    for (int i{}; i < particleCount; ++i)
+    for (int i{}; i < maxParticles; ++i)
     {
         Particle &p = particles[i];
-        p.life -= dt;
         if (p.life > 0)
         {
+            p.life -= dt;
             p.position += p.velocity * dt;
         }
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER,
-                 sizeof(Particle) * particleCount, // size of all particles in particle array (bytes)
-                 particles.data(),                 // pointer to actual particle data
+                 sizeof(Particle) * maxParticles, // size of all particles in particle array (bytes)
+                 particles.data(),                // pointer to actual particle data
                  GL_STATIC_DRAW);
+}
+
+void emitParticles(int x, int y)
+{
+    for (int i{0}; i < particlesPerFrame; ++i)
+    {
+        Particle &p = particles[particleIndex];
+        particleIndex = (particleIndex + 1) % maxParticles;
+
+        if (p.life <= 0)
+        {
+            spawnParticleAt(p, x, y);
+        }
+    }
+}
+
+void spawnParticleAt(Particle &p, int x, int y)
+{
+    glm::vec2 directionVec{
+        Random::get(-1.0f, 1.0f),
+        Random::get(-1.0f, 1.0f)};
+    const float speed = Random::get(10.0f, 100.0f);
+
+    p.velocity = glm::normalize(directionVec) * speed;
+    p.life = Random::get(5.0f, 15.0f);
+    p.position = glm::vec2{x, y};
 }
