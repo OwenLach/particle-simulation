@@ -73,6 +73,11 @@ void Shader::setMat4(const std::string &name, const glm::mat4 &mat) const
     glUniformMatrix4fv(glGetUniformLocation(this->ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
 }
 
+void Shader::setVec4(const std::string &name, const glm::vec4 &vec) const
+{
+    glUniform4fv(glGetUniformLocation(this->ID, name.c_str()), 1, &vec[0]);
+}
+
 std::string Shader::loadShaderSource(const char *path)
 {
     std::ifstream file(path);

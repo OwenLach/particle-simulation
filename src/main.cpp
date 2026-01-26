@@ -36,9 +36,13 @@ struct Particle
 {
     glm::vec2 position;
     glm::vec2 velocity;
+    glm::vec4 color;
     float life;
 
-    Particle() : position({static_cast<float>(SCR_WIDTH) / 2.0f, static_cast<float>(SCR_HEIGHT) / 2.0f}), velocity(0.0f), life(0.0f) {}
+    Particle() : position({static_cast<float>(SCR_WIDTH) / 2.0f, static_cast<float>(SCR_HEIGHT) / 2.0f}),
+                 velocity(0.0f),
+                 color({1.0f, 1.0f, 1.0f, 1.0f}),
+                 life(0.0f) {}
 };
 std::vector<Particle> particles;
 
@@ -49,7 +53,7 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "C++ Particle Simulation", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -84,8 +88,16 @@ int main()
                  GL_STATIC_DRAW);
 
     // Position attribute
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Particle), (void *)0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE,
+                          sizeof(Particle),
+                          (void *)0);
     glEnableVertexAttribArray(0);
+
+    // Color attribute
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE,
+                          sizeof(Particle),
+                          (void *)(4 * sizeof(float)));
+    glEnableVertexAttribArray(1);
 
     // Use Shader
     shader.use();
@@ -164,10 +176,21 @@ void updateParticles(unsigned int vbo, float dt)
     for (int i{}; i < maxParticles; ++i)
     {
         Particle &p = particles[i];
+
         if (p.life > 0)
         {
             p.life -= dt;
             p.position += p.velocity * dt;
+
+            const float t = static_cast<float>(glfwGetTime());
+            const float r = std::sin(t) / 2.0f + 0.5f;
+            const float g = (std::sin(t + 2.0f)) / 2.0f + 0.5f;
+            const float b = (std::sin(t + 4.0f)) / 2.0f + 0.5f;
+            p.color = glm::vec4{r, g, b, 1.0f};
+        }
+        else
+        {
+            p.color = glm::vec4{1.0f, 1.0f, 1.0f, 1.0f};
         }
     }
 
@@ -175,7 +198,7 @@ void updateParticles(unsigned int vbo, float dt)
     glBufferData(GL_ARRAY_BUFFER,
                  sizeof(Particle) * maxParticles, // size of all particles in particle array (bytes)
                  particles.data(),                // pointer to actual particle data
-                 GL_STATIC_DRAW);
+                 GL_DYNAMIC_DRAW);
 }
 
 void emitParticles(int x, int y)
@@ -202,4 +225,5 @@ void spawnParticleAt(Particle &p, int x, int y)
     p.velocity = glm::normalize(directionVec) * speed;
     p.life = Random::get(5.0f, 15.0f);
     p.position = glm::vec2{x, y};
+    p.color = glm::vec4{1.0f, 1.0f, 1.0f, 1.0f};
 }
