@@ -19,18 +19,20 @@ void updateParticles(unsigned int vbo, float dt);
 void emitParticles(int x, int y);
 void spawnParticleAt(Particle& p, int x, int y);
 
-// settings
-constexpr unsigned int SCR_WIDTH{ 1400 };
-constexpr unsigned int SCR_HEIGHT{ 1200 };
+namespace Settings
+{
+    constexpr unsigned int SCR_WIDTH{ 1400 };
+    constexpr unsigned int SCR_HEIGHT{ 1200 };
+    constexpr int maxParticles{ 10'000 };
+    constexpr int particlesPerFrame{ 4 };
+};
 
-constexpr int maxParticles{ 10'000 };
-constexpr int particlesPerFrame{ 4 };
-int particleIndex{ 0 };
+int g_particleIndex{ 0 };
 
 // Creates a projection matrix that makes (0, 0) the top-left of the screen, y goes down
-const glm::mat4 projection{ glm::ortho(0.0f, static_cast<float>(SCR_WIDTH),  // Left to right
-                                       static_cast<float>(SCR_HEIGHT), 0.0f, // Bottom to top
-                                       -1.0f, 1.0f) };                       // Near to far
+const glm::mat4 projection{ glm::ortho(0.0f, static_cast<float>(Settings::SCR_WIDTH),  // Left to right
+                                       static_cast<float>(Settings::SCR_HEIGHT), 0.0f, // Bottom to top
+                                       -1.0f, 1.0f) };                                 // Near to far
 
 struct Particle
 {
@@ -38,12 +40,8 @@ struct Particle
     glm::vec2 velocity;
     glm::vec4 color;
     float life;
-
-    Particle() : position({ static_cast<float>(SCR_WIDTH) / 2.0f, static_cast<float>(SCR_HEIGHT) / 2.0f }),
-                 velocity(0.0f),
-                 color({ 1.0f, 1.0f, 1.0f, 1.0f }),
-                 life(0.0f) {}
 };
+
 std::vector<Particle> particles;
 
 int main()
@@ -53,7 +51,7 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "C++ Particle Simulation", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(Settings::SCR_WIDTH, Settings::SCR_HEIGHT, "C++ Particle Simulation", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -83,8 +81,8 @@ int main()
     // Bind VBO and copy vertex data into buffer memory
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER,
-                 sizeof(Particle) * maxParticles, // size of all particles in particle array (bytes)
-                 NULL,                            // pointer to actual particle data
+                 sizeof(Particle) * Settings::maxParticles, // size of all particles in particle array (bytes)
+                 NULL,                                      // pointer to actual particle data
                  GL_STATIC_DRAW);
 
     // Position attribute
@@ -99,7 +97,6 @@ int main()
                           (void*)(4 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
-    // Use Shader
     shader.use();
     shader.setMat4("projection", projection);
 
@@ -153,11 +150,16 @@ void framebuffer_size_callback([[maybe_unused]] GLFWwindow* window, int width, i
 
 void initParticles()
 {
-    particles.reserve(maxParticles);
+    particles.reserve(Settings::maxParticles);
 
-    for (int i{}; i < maxParticles; ++i)
+    for (int i{}; i < Settings::maxParticles; ++i)
     {
-        Particle p;
+        Particle p{
+            .position{ static_cast<float>(Settings::SCR_WIDTH) / 2.0f, static_cast<float>(Settings::SCR_HEIGHT) / 2.0f },
+            .velocity{ 0.0f },
+            .color{ 1.0f, 1.0f, 1.0f, 0.0f },
+            .life{ 0.0f }
+        };
         particles.push_back(p);
     }
 }
@@ -167,13 +169,16 @@ void renderParticles(unsigned int vao)
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     glBindVertexArray(vao);
     glDrawArrays(GL_POINTS, 0, static_cast<int>(particles.size()));
 }
 
 void updateParticles(unsigned int vbo, float dt)
 {
-    for (int i{}; i < maxParticles; ++i)
+    for (int i{}; i < Settings::maxParticles; ++i)
     {
         Particle& p = particles[i];
 
@@ -181,6 +186,16 @@ void updateParticles(unsigned int vbo, float dt)
         {
             p.life -= dt;
             p.position += p.velocity * dt;
+
+            if (p.position.x >= Settings::SCR_WIDTH || p.position.x <= 0)
+            {
+                p.velocity.x *= -1;
+            }
+
+            if (p.position.y >= Settings::SCR_HEIGHT || p.position.y <= 0)
+            {
+                p.velocity.y *= -1;
+            }
 
             const float t = static_cast<float>(glfwGetTime());
             const float r = std::sin(t) / 2.0f + 0.5f;
@@ -190,23 +205,23 @@ void updateParticles(unsigned int vbo, float dt)
         }
         else
         {
-            p.color = glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f };
+            p.color = glm::vec4{ 1.0f, 1.0f, 1.0f, 0.0f };
         }
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER,
-                 sizeof(Particle) * maxParticles, // size of all particles in particle array (bytes)
-                 particles.data(),                // pointer to actual particle data
+                 sizeof(Particle) * Settings::maxParticles, // size of all particles in particle array (bytes)
+                 particles.data(),                          // pointer to actual particle data
                  GL_DYNAMIC_DRAW);
 }
 
 void emitParticles(int x, int y)
 {
-    for (int i{ 0 }; i < particlesPerFrame; ++i)
+    for (int i{ 0 }; i < Settings::particlesPerFrame; ++i)
     {
-        Particle& p = particles[particleIndex];
-        particleIndex = (particleIndex + 1) % maxParticles;
+        Particle& p = particles[g_particleIndex];
+        g_particleIndex = (g_particleIndex + 1) % Settings::maxParticles;
 
         if (p.life <= 0)
         {
