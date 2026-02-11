@@ -210,10 +210,10 @@ void updateParticles(unsigned int vbo, float dt)
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER,
-                 sizeof(Particle) * Settings::maxParticles, // size of all particles in particle array (bytes)
-                 particles.data(),                          // pointer to actual particle data
-                 GL_DYNAMIC_DRAW);
+    glBufferSubData(GL_ARRAY_BUFFER,
+                    0,
+                    sizeof(Particle) * Settings::maxParticles,
+                    particles.data());
 }
 
 void emitParticles(int x, int y)
