@@ -18,6 +18,7 @@ void renderParticles(unsigned int vao);
 void updateParticles(unsigned int vbo, float dt);
 void emitParticles(int x, int y);
 void spawnParticleAt(Particle& p, int x, int y);
+void pullParticlesTo(int x, int y);
 
 namespace Settings
 {
@@ -137,8 +138,22 @@ void processInput(GLFWwindow* window)
         double cursorX{};
         double cursorY{};
         glfwGetCursorPos(window, &cursorX, &cursorY);
+
         // std::cout << "(" << cursorX << ", " << cursorY << ")\n";
+
         emitParticles(static_cast<int>(cursorX), static_cast<int>(cursorY));
+    }
+
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT))
+    {
+        double cursorX{};
+        double cursorY{};
+        glfwGetCursorPos(window, &cursorX, &cursorY);
+
+        // std::cout << "RIGHT CLICK: ";
+        // std::cout << "(" << cursorX << ", " << cursorY << ")\n";
+
+        pullParticlesTo(static_cast<int>(cursorX), static_cast<int>(cursorY));
     }
 }
 
@@ -242,4 +257,20 @@ void spawnParticleAt(Particle& p, int x, int y)
     p.life = Random::get(5.0f, 15.0f);
     p.position = glm::vec2{ x, y };
     p.color = glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f };
+}
+
+void pullParticlesTo(int x, int y)
+{
+    for (int i{}; i < Settings::maxParticles; ++i)
+    {
+        Particle& p = particles[i];
+        if (p.life > 0)
+        {
+            glm::vec2 cursorVec{ x, y };
+            glm::vec2 dir{ glm::normalize(cursorVec - p.position) };
+
+            const float speed = Random::get(100.0f, 200.0f);
+            p.velocity = dir * speed;
+        }
+    }
 }
