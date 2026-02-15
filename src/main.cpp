@@ -5,6 +5,9 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
 
 #include <iostream>
 
@@ -24,6 +27,7 @@ namespace Settings
 {
     constexpr unsigned int SCR_WIDTH{ 1400 };
     constexpr unsigned int SCR_HEIGHT{ 1200 };
+    constexpr const char* glslVersion{ "#version 330 core" };
     constexpr int maxParticles{ 10'000 };
     constexpr int particlesPerFrame{ 4 };
 };
@@ -68,6 +72,18 @@ int main()
         return -1;
     }
 
+    // Setup ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
+    // Setup Platform/Renderer backends
+    ImGui_ImplGlfw_InitForOpenGL(window, true); // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
+    ImGui_ImplOpenGL3_Init(Settings::glslVersion);
+
     Shader shader("../shaders/vertex.vert", "../shaders/fragment.frag");
 
     // VAO
@@ -109,20 +125,48 @@ int main()
 
     while (!glfwWindowShouldClose(window))
     {
+        // Delta Time
         float currentFrame = static_cast<float>(glfwGetTime());
         float deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
+        // Input
+        glfwPollEvents();
         processInput(window);
 
+        // Start ImGui frame
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+        ImGui::Begin("Stats");
+        ImGui::End();
+
+        // Update
         updateParticles(vbo, deltaTime);
+
+        // Background color
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        // Enable transparency
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        // Render
         renderParticles(vao);
 
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
         glfwSwapBuffers(window);
-        glfwPollEvents();
     }
 
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
     glfwTerminate();
+
     return 0;
 }
 
@@ -181,12 +225,6 @@ void initParticles()
 
 void renderParticles(unsigned int vao)
 {
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
     glBindVertexArray(vao);
     glDrawArrays(GL_POINTS, 0, static_cast<int>(particles.size()));
 }
