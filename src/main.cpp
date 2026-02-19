@@ -118,6 +118,8 @@ int main()
     shader.setMat4("projection", projection);
 
     glEnable(GL_PROGRAM_POINT_SIZE);
+    float particleSize{ 1.5f };
+    shader.setFloat("pointSize", particleSize);
 
     initParticles();
 
@@ -138,7 +140,13 @@ int main()
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
+
         ImGui::Begin("Stats");
+        if (ImGui::SliderFloat("Particle Size", &particleSize, 0.1f, 5.0f))
+        {
+            shader.setFloat("pointSize", particleSize);
+        }
+        // ImGui::ShowDemoWindow();
         ImGui::End();
 
         // Update
