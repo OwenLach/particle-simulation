@@ -1,13 +1,13 @@
 #include "Shader.h"
 #include "Random.h"
+#include "UI.h"
+#include "SimulationParams.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <imgui.h>
-#include <imgui_impl_glfw.h>
-#include <imgui_impl_opengl3.h>
 
 #include <iostream>
 
@@ -25,14 +25,14 @@ void pullParticlesTo(int x, int y);
 
 namespace Settings
 {
-    constexpr unsigned int SCR_WIDTH{ 1400 };
-    constexpr unsigned int SCR_HEIGHT{ 1200 };
-    constexpr const char* glslVersion{ "#version 330 core" };
-    constexpr int maxParticles{ 10'000 };
-    constexpr int particlesPerFrame{ 4 };
+    constexpr unsigned int SCR_WIDTH = 1400;
+    constexpr unsigned int SCR_HEIGHT = 1200;
+    constexpr const char* glslVersion = "#version 330 core";
+    constexpr int maxParticles = 10'000;
+    constexpr int particlesPerFrame = 4;
 };
 
-int g_particleIndex{ 0 };
+int g_particleIndex = 0;
 
 // Creates a projection matrix that makes (0, 0) the top-left of the screen, y goes down
 const glm::mat4 projection{ glm::ortho(0.0f, static_cast<float>(Settings::SCR_WIDTH),  // Left to right
@@ -46,8 +46,10 @@ struct Particle
     glm::vec4 color;
     float life;
 };
-
 std::vector<Particle> particles;
+
+SimulationParams params{ 1.5f };
+UI ui{};
 
 int main()
 {
@@ -72,17 +74,7 @@ int main()
         return -1;
     }
 
-    // Setup ImGui context
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-
-    // Setup Platform/Renderer backends
-    ImGui_ImplGlfw_InitForOpenGL(window, true); // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
-    ImGui_ImplOpenGL3_Init(Settings::glslVersion);
+    ui.init(window, Settings::glslVersion, &params);
 
     Shader shader("../shaders/vertex.vert", "../shaders/fragment.frag");
 
@@ -100,7 +92,7 @@ int main()
     glBufferData(GL_ARRAY_BUFFER,
                  sizeof(Particle) * Settings::maxParticles, // size of all particles in particle array (bytes)
                  NULL,                                      // pointer to actual particle data
-                 GL_STATIC_DRAW);
+                 GL_DYNAMIC_DRAW);
 
     // Position attribute
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE,
@@ -118,8 +110,8 @@ int main()
     shader.setMat4("projection", projection);
 
     glEnable(GL_PROGRAM_POINT_SIZE);
-    float particleSize{ 1.5f };
-    shader.setFloat("pointSize", particleSize);
+
+    shader.setFloat("pointSize", params.particleSize);
 
     initParticles();
 
@@ -136,20 +128,11 @@ int main()
         glfwPollEvents();
         processInput(window);
 
-        // Start ImGui frame
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-
-        ImGui::Begin("Stats");
-        if (ImGui::SliderFloat("Particle Size", &particleSize, 0.1f, 5.0f))
-        {
-            shader.setFloat("pointSize", particleSize);
-        }
-        // ImGui::ShowDemoWindow();
-        ImGui::End();
+        ui.newFrame();
+        ui.draw();
 
         // Update
+        shader.setFloat("pointSize", params.particleSize);
         updateParticles(vbo, deltaTime);
 
         // Background color
@@ -162,17 +145,12 @@ int main()
 
         // Render
         renderParticles(vao);
-
-        ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        ui.endFrame();
 
         glfwSwapBuffers(window);
     }
 
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
-
+    ui.cleanup();
     glfwTerminate();
 
     return 0;
@@ -185,31 +163,31 @@ void processInput(GLFWwindow* window)
         glfwSetWindowShouldClose(window, true);
     }
 
+    // If UI wants the mouse don't process input
+    if (ui.wantCaptureMouse())
+    {
+        return;
+    }
+
+    double cursorX;
+    double cursorY;
+    glfwGetCursorPos(window, &cursorX, &cursorY);
+
+    int x = static_cast<int>(cursorX);
+    int y = static_cast<int>(cursorY);
+
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT))
     {
-        double cursorX{};
-        double cursorY{};
-        glfwGetCursorPos(window, &cursorX, &cursorY);
-
-        // std::cout << "(" << cursorX << ", " << cursorY << ")\n";
-
-        emitParticles(static_cast<int>(cursorX), static_cast<int>(cursorY));
+        emitParticles(x, y);
     }
 
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT))
     {
-        double cursorX{};
-        double cursorY{};
-        glfwGetCursorPos(window, &cursorX, &cursorY);
-
-        // std::cout << "RIGHT CLICK: ";
-        // std::cout << "(" << cursorX << ", " << cursorY << ")\n";
-
-        pullParticlesTo(static_cast<int>(cursorX), static_cast<int>(cursorY));
+        pullParticlesTo(x, y);
     }
 }
 
-void framebuffer_size_callback([[maybe_unused]] GLFWwindow* window, int width, int height)
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     (void)window;
     glViewport(0, 0, width, height);
@@ -219,7 +197,7 @@ void initParticles()
 {
     particles.reserve(Settings::maxParticles);
 
-    for (int i{}; i < Settings::maxParticles; ++i)
+    for (int i = 0; i < Settings::maxParticles; ++i)
     {
         Particle p{
             .position{ static_cast<float>(Settings::SCR_WIDTH) / 2.0f, static_cast<float>(Settings::SCR_HEIGHT) / 2.0f },
@@ -239,35 +217,36 @@ void renderParticles(unsigned int vao)
 
 void updateParticles(unsigned int vbo, float dt)
 {
-    for (int i{}; i < Settings::maxParticles; ++i)
+    const float t = static_cast<float>(glfwGetTime());
+    const float r = std::sin(t) / 2.0f + 0.5f;
+    const float g = (std::sin(t + 2.0f)) / 2.0f + 0.5f;
+    const float b = (std::sin(t + 4.0f)) / 2.0f + 0.5f;
+
+    for (int i = 0; i < Settings::maxParticles; ++i)
     {
         Particle& p = particles[i];
 
-        if (p.life > 0)
-        {
-            p.life -= dt;
-            p.position += p.velocity * dt;
-
-            if (p.position.x >= Settings::SCR_WIDTH || p.position.x <= 0)
-            {
-                p.velocity.x *= -1;
-            }
-
-            if (p.position.y >= Settings::SCR_HEIGHT || p.position.y <= 0)
-            {
-                p.velocity.y *= -1;
-            }
-
-            const float t = static_cast<float>(glfwGetTime());
-            const float r = std::sin(t) / 2.0f + 0.5f;
-            const float g = (std::sin(t + 2.0f)) / 2.0f + 0.5f;
-            const float b = (std::sin(t + 4.0f)) / 2.0f + 0.5f;
-            p.color = glm::vec4{ r, g, b, 1.0f };
-        }
-        else
+        // Set dead particles to be transparent
+        if (p.life <= 0)
         {
             p.color = glm::vec4{ 1.0f, 1.0f, 1.0f, 0.0f };
+            continue;
         }
+
+        p.life -= dt;
+        p.position += p.velocity * dt;
+
+        if (p.position.x >= Settings::SCR_WIDTH || p.position.x <= 0)
+        {
+            p.velocity.x *= -1;
+        }
+
+        if (p.position.y >= Settings::SCR_HEIGHT || p.position.y <= 0)
+        {
+            p.velocity.y *= -1;
+        }
+
+        p.color = glm::vec4{ r, g, b, 1.0f };
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -279,7 +258,7 @@ void updateParticles(unsigned int vbo, float dt)
 
 void emitParticles(int x, int y)
 {
-    for (int i{ 0 }; i < Settings::particlesPerFrame; ++i)
+    for (int i = 0; i < Settings::particlesPerFrame; ++i)
     {
         Particle& p = particles[g_particleIndex];
         g_particleIndex = (g_particleIndex + 1) % Settings::maxParticles;
@@ -307,7 +286,7 @@ void spawnParticleAt(Particle& p, int x, int y)
 
 void pullParticlesTo(int x, int y)
 {
-    for (int i{}; i < Settings::maxParticles; ++i)
+    for (int i = 0; i < Settings::maxParticles; ++i)
     {
         Particle& p = particles[i];
         if (p.life > 0)

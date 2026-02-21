@@ -17,6 +17,7 @@ target_include_directories(glad PUBLIC include)
 add_executable(ParticleSimulator 
     src/main.cpp
     src/Shader.cpp
+    src/UI.cpp
     libs/imgui/imgui.cpp
     libs/imgui/imgui_demo.cpp
     libs/imgui/imgui_draw.cpp
