@@ -86,21 +86,37 @@ int main()
     shader.setMat4("projection", projection);
     shader.setFloat("pointSize", params.particleSize);
 
-    float lastFrame = static_cast<float>(glfwGetTime());
+    float fps = 0;
+    int frameCount = 0;
+
+    double lastFrameTime = glfwGetTime();
+    double lastFramerateUpdate = lastFrameTime;
+    double timeElapsed = 0.0;
 
     while (!glfwWindowShouldClose(window))
     {
+        frameCount++;
+
         // Delta Time
-        float currentFrame = static_cast<float>(glfwGetTime());
-        float deltaTime = currentFrame - lastFrame;
-        lastFrame = currentFrame;
+        const double now = glfwGetTime();
+        const float deltaTime = static_cast<float>(now - lastFrameTime);
+        lastFrameTime = now;
+
+        timeElapsed = now - lastFramerateUpdate;
+        // Update framerate every second
+        if (timeElapsed >= 1.0)
+        {
+            fps = static_cast<float>(frameCount / timeElapsed);
+            lastFramerateUpdate = now;
+            frameCount = 0;
+        }
 
         // Input
         glfwPollEvents();
         processInput(window);
 
         ui.newFrame();
-        ui.draw();
+        ui.draw(fps);
 
         // Update
         shader.setFloat("pointSize", params.particleSize);

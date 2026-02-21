@@ -10,7 +10,7 @@ public:
     void cleanup();
 
     void newFrame();
-    void draw();
+    void draw(float fps);
     void endFrame();
 
     bool wantCaptureMouse();

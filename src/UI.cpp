@@ -41,9 +41,10 @@ void UI::newFrame()
     ImGui::NewFrame();
 }
 
-void UI::draw()
+void UI::draw(float fps)
 {
     ImGui::Begin("Stats");
+    ImGui::Text("FPS: %.2f", fps);
     ImGui::SliderFloat("Particle Size", &params_->particleSize, 0.1f, 5.0f);
     // ImGui::ShowDemoWindow();
     ImGui::End();
