@@ -17,9 +17,9 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 
 // Creates a projection matrix that makes (0, 0) the top-left of the screen, y goes down
-const glm::mat4 projection{ glm::ortho(0.0f, static_cast<float>(Settings::SCR_WIDTH),  // Left to right
-                                       static_cast<float>(Settings::SCR_HEIGHT), 0.0f, // Bottom to top
-                                       -1.0f, 1.0f) };                                 // Near to far
+glm::mat4 g_projection{ glm::ortho(0.0f, static_cast<float>(Settings::SCR_WIDTH),  // Left to right
+                                   static_cast<float>(Settings::SCR_HEIGHT), 0.0f, // Bottom to top
+                                   -1.0f, 1.0f) };                                 // Near to far
 
 ParticleSystem particleSystem{};
 SimulationParams params{ 1.5f };
@@ -83,7 +83,7 @@ int main()
     glEnable(GL_PROGRAM_POINT_SIZE);
 
     shader.use();
-    shader.setMat4("projection", projection);
+    shader.setMat4("projection", g_projection);
     shader.setFloat("pointSize", params.particleSize);
 
     float fps = 0;
@@ -120,6 +120,7 @@ int main()
 
         // Update
         shader.setFloat("pointSize", params.particleSize);
+        shader.setMat4("projection", g_projection);
         particleSystem.update(vbo, deltaTime);
 
         // Background color
@@ -177,5 +178,10 @@ void processInput(GLFWwindow* window)
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     (void)window;
+    Settings::SCR_HEIGHT = height;
+    Settings::SCR_WIDTH = width;
+    g_projection = glm::ortho(0.0f, static_cast<float>(width),  // Left to right
+                              static_cast<float>(height), 0.0f, // Bottom to top
+                              -1.0f, 1.0f);                     // Near to far
     glViewport(0, 0, width, height);
 }
