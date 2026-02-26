@@ -13,6 +13,7 @@ public:
     void draw(float fps);
     void endFrame();
 
+    // put in InputManager class
     bool wantCaptureMouse();
 
 private:

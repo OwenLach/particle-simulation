@@ -5,6 +5,7 @@
 #include "Shader.h"
 #include "SimulationParams.h"
 #include "UI.h"
+#include "Window.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -13,34 +14,21 @@
 
 #include <iostream>
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void processInput(GLFWwindow* window);
+void processInput();
 
-// Creates a projection matrix that makes (0, 0) the top-left of the screen, y goes down
-glm::mat4 g_projection{ glm::ortho(0.0f, static_cast<float>(Settings::SCR_WIDTH),  // Left to right
-                                   static_cast<float>(Settings::SCR_HEIGHT), 0.0f, // Bottom to top
-                                   -1.0f, 1.0f) };                                 // Near to far
-
+Window window{ { 1400, 1200, "2D Particle Simulation" } };
 ParticleSystem particleSystem{};
 SimulationParams params{ 1.5f };
 UI ui{};
 
+glm::mat4 g_projection{ glm::ortho(0.0f, static_cast<float>(Settings::SCR_WIDTH),  // Left to right
+                                   static_cast<float>(Settings::SCR_HEIGHT), 0.0f, // Bottom to top
+                                   -1.0f, 1.0f) };
 int main()
 {
     glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(Settings::SCR_WIDTH, Settings::SCR_HEIGHT, "C++ Particle Simulation", NULL, NULL);
-    if (window == NULL)
-    {
-        std::cout << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
-        return -1;
-    }
-    glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    window.create();
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
@@ -48,7 +36,7 @@ int main()
         return -1;
     }
 
-    ui.init(window, Settings::glslVersion, &params);
+    ui.init(window.getHandle(), Settings::glslVersion, &params);
 
     Shader shader("../shaders/vertex.vert", "../shaders/fragment.frag");
 
@@ -69,22 +57,26 @@ int main()
                  GL_DYNAMIC_DRAW);
 
     // Position attribute
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE,
-                          sizeof(Particle),
-                          (void*)0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Particle), (void*)0);
     glEnableVertexAttribArray(0);
 
     // Color attribute
-    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE,
-                          sizeof(Particle),
-                          (void*)(4 * sizeof(float)));
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Particle), (void*)(4 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
+    // Enable resizeable points through gl_PointSize in shader
     glEnable(GL_PROGRAM_POINT_SIZE);
 
+    // Enable transparency
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    // Background color
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+
+    // glm::vec2 framebufferSize{ window.getFrameBufferSize() };
+
     shader.use();
-    shader.setMat4("projection", g_projection);
-    shader.setFloat("pointSize", params.particleSize);
 
     float fps = 0;
     int frameCount = 0;
@@ -93,7 +85,7 @@ int main()
     double lastFramerateUpdate = lastFrameTime;
     double timeElapsed = 0.0;
 
-    while (!glfwWindowShouldClose(window))
+    while (!window.shouldClose())
     {
         frameCount++;
 
@@ -113,42 +105,39 @@ int main()
 
         // Input
         glfwPollEvents();
-        processInput(window);
+        processInput();
 
         ui.newFrame();
         ui.draw(fps);
 
         // Update
-        shader.setFloat("pointSize", params.particleSize);
+        // framebufferSize = window.getFrameBufferSize();
         shader.setMat4("projection", g_projection);
+        shader.setFloat("pointSize", params.particleSize);
         particleSystem.update(vbo, deltaTime);
 
-        // Background color
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        // Clear the screen
         glClear(GL_COLOR_BUFFER_BIT);
-
-        // Enable transparency
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         // Render
         particleSystem.render(vao);
         ui.endFrame();
 
-        glfwSwapBuffers(window);
+        window.update();
     }
 
+    window.destroy();
     ui.cleanup();
     glfwTerminate();
 
     return 0;
 }
 
-void processInput(GLFWwindow* window)
+void processInput()
 {
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    if (glfwGetKey(window.getHandle(), GLFW_KEY_ESCAPE) == GLFW_PRESS)
     {
-        glfwSetWindowShouldClose(window, true);
+        glfwSetWindowShouldClose(window.getHandle(), true);
     }
 
     // If UI wants the mouse don't process input
@@ -159,29 +148,18 @@ void processInput(GLFWwindow* window)
 
     double cursorX;
     double cursorY;
-    glfwGetCursorPos(window, &cursorX, &cursorY);
+    glfwGetCursorPos(window.getHandle(), &cursorX, &cursorY);
 
     int x = static_cast<int>(cursorX);
     int y = static_cast<int>(cursorY);
 
-    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT))
+    if (glfwGetMouseButton(window.getHandle(), GLFW_MOUSE_BUTTON_LEFT))
     {
         particleSystem.emitParticles(x, y);
     }
 
-    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT))
+    if (glfwGetMouseButton(window.getHandle(), GLFW_MOUSE_BUTTON_RIGHT))
     {
         particleSystem.pullParticlesTo(x, y);
     }
-}
-
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
-    (void)window;
-    Settings::SCR_HEIGHT = height;
-    Settings::SCR_WIDTH = width;
-    g_projection = glm::ortho(0.0f, static_cast<float>(width),  // Left to right
-                              static_cast<float>(height), 0.0f, // Bottom to top
-                              -1.0f, 1.0f);                     // Near to far
-    glViewport(0, 0, width, height);
 }

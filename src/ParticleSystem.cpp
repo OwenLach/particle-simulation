@@ -43,12 +43,12 @@ void ParticleSystem::update(unsigned int vbo, float dt)
         p.life -= dt;
         p.position += p.velocity * dt;
 
-        if (p.position.x >= Settings::SCR_WIDTH || p.position.x <= 0)
+        if (p.position.x >= static_cast<float>(Settings::SCR_WIDTH) || p.position.x <= 0)
         {
             p.velocity.x *= -1;
         }
 
-        if (p.position.y >= Settings::SCR_HEIGHT || p.position.y <= 0)
+        if (p.position.y >= static_cast<float>(Settings::SCR_HEIGHT) || p.position.y <= 0)
         {
             p.velocity.y *= -1;
         }
