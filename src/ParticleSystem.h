@@ -1,8 +1,17 @@
 #pragma once
 
+#include <glm/glm.hpp>
+
 #include <vector>
 
-struct Particle;
+struct Particle
+{
+    glm::vec2 position;
+    glm::vec2 velocity;
+    glm::vec4 color;
+    float life;
+};
+
 class Shader;
 
 class ParticleSystem
@@ -20,5 +29,5 @@ public:
 
 private:
     int particleIndex_ = 0;
-    std::vector<Particle> particles_;
+    std::vector<Particle> particles_{};
 };

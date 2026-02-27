@@ -5,7 +5,6 @@
 #include <GLFW/glfw3.h>
 
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp> // Remove when take out projection from this file
 
 #include <iostream>
 #include <string>
@@ -13,7 +12,7 @@
 extern glm::mat4 g_projection;
 
 Window::Window(const WindowProps& props)
-    : props_(props)
+    : props_{ props }
 {
 }
 
@@ -51,7 +50,7 @@ void Window::create()
         (void)window;
         Settings::SCR_HEIGHT = height;
         Settings::SCR_WIDTH = width;
-        g_projection = glm::ortho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f, -1.0f, 1.0f);
+
         glViewport(0, 0, static_cast<GLsizei>(width), static_cast<GLsizei>(height));
     });
     // clang-format on

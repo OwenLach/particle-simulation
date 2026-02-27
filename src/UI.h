@@ -17,5 +17,5 @@ public:
     bool wantCaptureMouse();
 
 private:
-    SimulationParams* params_;
+    SimulationParams* params_{};
 };

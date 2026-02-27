@@ -1,5 +1,4 @@
 #include "ParticleSystem.h"
-#include "Particle.h"
 #include "Settings.h"
 #include "Random.h"
 

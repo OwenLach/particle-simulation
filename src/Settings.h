@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Settings
 {
     inline int SCR_WIDTH = 1400;

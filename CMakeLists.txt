@@ -16,6 +16,7 @@ target_include_directories(glad PUBLIC include)
 # Add executable
 add_executable(ParticleSimulator 
     src/main.cpp
+    src/Application.cpp
     src/Shader.cpp
     src/UI.cpp
     src/ParticleSystem.cpp

@@ -3,24 +3,26 @@
 
 #pragma once
 
+#include "Settings.h"
+
 #include <glm/glm.hpp>
 
 #include <string>
 
 struct GLFWwindow;
 
+struct WindowProps
+{
+    int width = Settings::SCR_WIDTH;
+    int height = Settings::SCR_HEIGHT;
+    std::string title = "Window";
+};
+
 class Window
 {
-    struct WindowProps
-    {
-        int width = 1200;
-        int height = 1400;
-        std::string title = "Window";
-    };
-
 public:
     // Remove create() and destroy() when done Application class
-    Window(const WindowProps& props);
+    Window(const WindowProps& props = WindowProps{});
     ~Window();
 
     void create();
