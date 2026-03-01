@@ -1,5 +1,5 @@
 #include "UI.h"
-#include "SimulationParams.h"
+#include "ParticleSystem.h"
 
 #include <GLFW/glfw3.h>
 
@@ -46,6 +46,7 @@ void UI::draw(float fps)
     ImGui::Begin("Stats");
     ImGui::Text("FPS: %.2f", fps);
     ImGui::SliderFloat("Particle Size", &params_->particleSize, 0.1f, 5.0f);
+    ImGui::SliderInt("Emission Rate", &params_->emissionRate, 1, 20);
     // ImGui::ShowDemoWindow();
     ImGui::End();
 }

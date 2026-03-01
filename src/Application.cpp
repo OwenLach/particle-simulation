@@ -3,7 +3,6 @@
 #include "UI.h"
 #include "ParticleSystem.h"
 #include "Shader.h"
-#include "SimulationParams.h"
 #include "Settings.h"
 
 #include <glad/glad.h>
@@ -35,6 +34,8 @@ Application::Application(const ApplicationProps& props)
     }
 
     ui_.init(window_.getHandle(), Settings::glslVersion, &params_);
+
+    particleSystem_.setParams(&params_);
 
     particleShader_ = std::make_unique<Shader>("../shaders/vertex.vert", "../shaders/fragment.frag");
 

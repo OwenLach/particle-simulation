@@ -70,7 +70,7 @@ void ParticleSystem::render(unsigned int vao) const
 
 void ParticleSystem::emitParticles(int x, int y)
 {
-    for (int i = 0; i < Settings::particlesPerFrame; ++i)
+    for (int i = 0; i < params_->emissionRate; ++i)
     {
         Particle& p = particles_[particleIndex_];
         particleIndex_ = (particleIndex_ + 1) % Settings::maxParticles;

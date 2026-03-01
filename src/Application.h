@@ -3,8 +3,6 @@
 #include "Window.h"
 #include "UI.h"
 #include "ParticleSystem.h"
-#include "SimulationParams.h"
-
 #include <glm/glm.hpp>
 
 #include <memory>
