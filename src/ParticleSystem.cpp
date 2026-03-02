@@ -88,7 +88,7 @@ void ParticleSystem::spawnParticleAt(Particle& p, int x, int y)
         Random::get(-1.0f, 1.0f),
         Random::get(-1.0f, 1.0f)
     };
-    const float speed = Random::get(10.0f, 100.0f);
+    const float speed = Random::get(params_->particleMinSpeed, params_->particleMaxSpeed);
 
     p.velocity = glm::normalize(directionVec) * speed;
     p.life = Random::get(5.0f, 15.0f);
@@ -106,7 +106,7 @@ void ParticleSystem::pullParticlesTo(int x, int y)
             glm::vec2 cursorVec{ x, y };
             glm::vec2 dir{ glm::normalize(cursorVec - p.position) };
 
-            const float speed = Random::get(100.0f, 200.0f);
+            const float speed = Random::get(params_->particleMinSpeed, params_->particleMaxSpeed);
             p.velocity = dir * speed;
         }
     }

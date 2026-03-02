@@ -7,6 +7,8 @@
 struct SimulationParams
 {
     float particleSize{ 1.5f };
+    float particleMinSpeed{ 10.0f };
+    float particleMaxSpeed{ 100.0f };
     int emissionRate{ 10 };
 };
 
