@@ -6,15 +6,15 @@
 
 struct SimulationParams
 {
-    float particleSize{ 1.5f };
-    float particleMinSpeed{ 10.0f };
-    float particleMaxSpeed{ 100.0f };
-    int emissionRate{ 10 };
+    float particleSize = 1.5f;
+    float particleMinSpeed = 10.0f;
+    float particleMaxSpeed = 100.0f;
+    float particleMinLife = 5.0f;
+    float particleMaxLife = 30.0f;
+    int emissionRate = 10;
 };
 
-// Emission Rate: make rate changeable with slider
 // Make the color default to change color overtime but let user select color
-// Make default speed random but let user change the speed
 
 struct Particle
 {

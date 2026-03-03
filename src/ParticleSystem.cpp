@@ -91,7 +91,7 @@ void ParticleSystem::spawnParticleAt(Particle& p, int x, int y)
     const float speed = Random::get(params_->particleMinSpeed, params_->particleMaxSpeed);
 
     p.velocity = glm::normalize(directionVec) * speed;
-    p.life = Random::get(5.0f, 15.0f);
+    p.life = Random::get(params_->particleMinLife, params_->particleMaxLife);
     p.position = glm::vec2{ x, y };
     p.color = glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f };
 }

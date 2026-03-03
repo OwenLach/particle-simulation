@@ -45,10 +45,16 @@ void UI::draw(float fps)
 {
     ImGui::Begin("Stats");
     ImGui::Text("FPS: %.2f", fps);
+
     ImGui::SliderFloat("Particle Size", &params_->particleSize, 0.1f, 5.0f);
+
     ImGui::SliderInt("Emission Rate", &params_->emissionRate, 1, 20);
+
     ImGui::SliderFloat("Particle Min Speed", &params_->particleMinSpeed, 1.0f, 100.0f);
     ImGui::SliderFloat("Particle Max Speed", &params_->particleMaxSpeed, 100.0f, 200.0f);
+
+    ImGui::SliderFloat("Particle Min Life", &params_->particleMinLife, 1.0f, 15.0f);
+    ImGui::SliderFloat("Particle Max Life", &params_->particleMaxLife, 15.0f, 30.0f);
     // ImGui::ShowDemoWindow();
     ImGui::End();
 }

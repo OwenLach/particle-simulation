@@ -9,8 +9,6 @@
 #include <iostream>
 #include <string>
 
-extern glm::mat4 g_projection;
-
 Window::Window(const WindowProps& props)
     : props_{ props }
 {
