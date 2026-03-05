@@ -38,6 +38,7 @@ public:
     void emitParticles(int x, int y);
 
     void pullParticlesTo(int x, int y);
+    void circleParticlesAround(int x, int y);
 
     void setParams(const SimulationParams* params) { params_ = params; }
 

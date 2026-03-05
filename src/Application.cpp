@@ -160,6 +160,7 @@ void Application::processInput()
 
     if (glfwGetMouseButton(window_.getHandle(), GLFW_MOUSE_BUTTON_RIGHT))
     {
-        particleSystem_.pullParticlesTo(x, y);
+        // particleSystem_.pullParticlesTo(x, y);
+        particleSystem_.circleParticlesAround(x, y);
     }
 }

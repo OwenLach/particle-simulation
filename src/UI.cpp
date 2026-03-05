@@ -48,7 +48,7 @@ void UI::draw(float fps)
 
     ImGui::SliderFloat("Particle Size", &params_->particleSize, 0.1f, 5.0f);
 
-    ImGui::SliderInt("Emission Rate", &params_->emissionRate, 1, 20);
+    ImGui::SliderInt("Emission Rate", &params_->emissionRate, 1, 40);
 
     ImGui::SliderFloat("Particle Min Speed", &params_->particleMinSpeed, 1.0f, 100.0f);
     ImGui::SliderFloat("Particle Max Speed", &params_->particleMaxSpeed, 100.0f, 200.0f);

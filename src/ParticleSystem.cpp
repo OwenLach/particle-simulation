@@ -5,6 +5,8 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include <cmath>
+
 ParticleSystem::ParticleSystem()
 {
     particles_.reserve(Settings::maxParticles);
@@ -103,11 +105,31 @@ void ParticleSystem::pullParticlesTo(int x, int y)
         Particle& p = particles_[i];
         if (p.life > 0)
         {
-            glm::vec2 cursorVec{ x, y };
-            glm::vec2 dir{ glm::normalize(cursorVec - p.position) };
+            glm::vec2 cursorPos{ x, y };
+            glm::vec2 dir{ glm::normalize(cursorPos - p.position) };
 
             const float speed = Random::get(params_->particleMinSpeed, params_->particleMaxSpeed);
             p.velocity = dir * speed;
+        }
+    }
+}
+
+void ParticleSystem::circleParticlesAround(int x, int y)
+{
+    // multiply this by dt
+    float angle = 0.009f;
+
+    for (int i = 0; i < Settings::maxParticles; ++i)
+    {
+        Particle& p = particles_[i];
+        if (p.life > 0)
+        {
+            glm::vec2 cursorPos{ x, y };
+
+            glm::vec2 translatedPos{ p.position - cursorPos };
+            glm::vec2 rotated{ translatedPos.x * std::cos(angle) - translatedPos.y * std::sin(angle),
+                               translatedPos.y * std::cos(angle) + translatedPos.x * std::sin(angle) };
+            p.position = rotated + cursorPos;
         }
     }
 }
