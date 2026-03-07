@@ -20,6 +20,7 @@ Application::Application(const ApplicationProps& props)
       ui_{},
       particleSystem_{},
       params_{ 1.5f },
+      drawData_{ "Stats", "None", 0.0f },
       projection_{ glm::ortho(0.0f, static_cast<float>(Settings::SCR_WIDTH),  // Left to right
                               static_cast<float>(Settings::SCR_HEIGHT), 0.0f, // Bottom to top
                               -1.0f, 1.0f) }
@@ -33,7 +34,7 @@ Application::Application(const ApplicationProps& props)
         throw std::runtime_error("Failed to initialize GLAD\n");
     }
 
-    ui_.init(window_.getHandle(), Settings::glslVersion, &params_);
+    ui_.init(window_.getHandle(), Settings::glslVersion);
 
     particleSystem_.setParams(&params_);
 
@@ -113,8 +114,11 @@ void Application::run()
         glfwPollEvents();
         processInput();
 
+        drawData_.fps = fps;
+        drawData_.activeModifier = toString(particleSystem_.getCurrentModifier());
+
         ui_.newFrame();
-        ui_.draw(fps);
+        ui_.draw(params_, drawData_);
 
         // Update
         glm::vec2 framebufferSize = window_.getFrameBufferSize();
@@ -160,7 +164,16 @@ void Application::processInput()
 
     if (glfwGetMouseButton(window_.getHandle(), GLFW_MOUSE_BUTTON_RIGHT))
     {
-        // particleSystem_.pullParticlesTo(x, y);
-        particleSystem_.circleParticlesAround(x, y);
+        particleSystem_.applyModifier(x, y);
+    }
+
+    if (glfwGetKey(window_.getHandle(), GLFW_KEY_1))
+    {
+        particleSystem_.setParticleModifier(ParticleModifierType::Pull);
+    }
+
+    if (glfwGetKey(window_.getHandle(), GLFW_KEY_2))
+    {
+        particleSystem_.setParticleModifier(ParticleModifierType::Circle);
     }
 }

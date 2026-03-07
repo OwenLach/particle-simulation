@@ -9,10 +9,8 @@
 
 #include <iostream>
 
-void UI::init(GLFWwindow* window, const char* glslVersion, SimulationParams* params)
+void UI::init(GLFWwindow* window, const char* glslVersion)
 {
-    params_ = params;
-
     // Setup ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -41,21 +39,25 @@ void UI::newFrame()
     ImGui::NewFrame();
 }
 
-void UI::draw(float fps)
+void UI::draw(SimulationParams& params, DrawData& drawData)
 {
-    ImGui::Begin("Stats");
-    ImGui::Text("FPS: %.2f", fps);
+    // ImGui::Begin("Stats");
+    ImGui::Begin(drawData.title.c_str());
+    ImGui::TextColored({ 1.0f, 0.0f, 0.0f, 1.0f }, "FPS: %.2f", drawData.fps);
+    ImGui::Text("Current Modifier: %s", drawData.activeModifier.c_str());
 
-    ImGui::SliderFloat("Particle Size", &params_->particleSize, 0.1f, 5.0f);
+    ImGui::SliderFloat("Particle Size", &params.particleSize, 0.1f, 5.0f);
 
-    ImGui::SliderInt("Emission Rate", &params_->emissionRate, 1, 40);
+    ImGui::SliderInt("Emission Rate", &params.emissionRate, 1, 40);
 
-    ImGui::SliderFloat("Particle Min Speed", &params_->particleMinSpeed, 1.0f, 100.0f);
-    ImGui::SliderFloat("Particle Max Speed", &params_->particleMaxSpeed, 100.0f, 200.0f);
+    ImGui::SliderFloat("Particle Min Speed", &params.particleMinSpeed, 1.0f, 100.0f);
+    ImGui::SliderFloat("Particle Max Speed", &params.particleMaxSpeed, 100.0f, 200.0f);
 
-    ImGui::SliderFloat("Particle Min Life", &params_->particleMinLife, 1.0f, 15.0f);
-    ImGui::SliderFloat("Particle Max Life", &params_->particleMaxLife, 15.0f, 30.0f);
+    ImGui::SliderFloat("Particle Min Life", &params.particleMinLife, 1.0f, 15.0f);
+    ImGui::SliderFloat("Particle Max Life", &params.particleMaxLife, 15.0f, 30.0f);
+
     // ImGui::ShowDemoWindow();
+
     ImGui::End();
 }
 

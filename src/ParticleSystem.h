@@ -3,6 +3,8 @@
 #include <glm/glm.hpp>
 
 #include <vector>
+#include <array>
+#include <string_view>
 
 struct SimulationParams
 {
@@ -14,8 +16,6 @@ struct SimulationParams
     int emissionRate = 10;
 };
 
-// Make the color default to change color overtime but let user select color
-
 struct Particle
 {
     glm::vec2 position;
@@ -23,6 +23,20 @@ struct Particle
     glm::vec4 color;
     float life;
 };
+
+enum class ParticleModifierType
+{
+    None,
+    Pull,
+    Circle
+};
+
+constexpr auto modifierNames{ std::to_array<std::string_view>({ "None", "Pull", "Circle" }) };
+
+inline std::string_view toString(ParticleModifierType type)
+{
+    return modifierNames[static_cast<std::size_t>(type)];
+}
 
 class Shader;
 
@@ -37,16 +51,20 @@ public:
     // probably Emitter class later
     void emitParticles(int x, int y);
 
+    void applyModifier(int cursorX, int cursorY);
     void pullParticlesTo(int x, int y);
     void circleParticlesAround(int x, int y);
 
     void setParams(const SimulationParams* params) { params_ = params; }
+    void setParticleModifier(ParticleModifierType type) { modifierType_ = type; }
+    ParticleModifierType getCurrentModifier() const { return modifierType_; }
 
 private:
     void spawnParticleAt(Particle& p, int x, int y);
 
 private:
-    const SimulationParams* params_{};
-    int particleIndex_ = 0;
     std::vector<Particle> particles_{};
+    const SimulationParams* params_{};
+    ParticleModifierType modifierType_{ ParticleModifierType::None };
+    int particleIndex_ = 0;
 };

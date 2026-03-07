@@ -38,5 +38,6 @@ private:
     std::unique_ptr<Shader> particleShader_;
     ParticleSystem particleSystem_;
     SimulationParams params_;
+    DrawData drawData_;
     glm::mat4 projection_;
 };
