@@ -124,41 +124,18 @@ void ParticleSystem::pullParticlesTo(int x, int y)
     }
 }
 
-// void ParticleSystem::circleParticlesAround(int x, int y)
-// {
-//     // multiply this by dt
-//     float angle = 0.009f;
-
-//     for (Particle& p : particles_)
-//     {
-//         if (p.life <= 0)
-//             continue;
-
-//         glm::vec2 cursorPos{ x, y };
-//         glm::vec2 translatedPos{ p.position - cursorPos };
-//         glm::vec2 rotated{ translatedPos.x * std::cos(angle) - translatedPos.y * std::sin(angle),
-//                            translatedPos.y * std::cos(angle) + translatedPos.x * std::sin(angle) };
-//         p.position = rotated + cursorPos;
-//     }
-// }
-
 void ParticleSystem::circleParticlesAround(int x, int y)
 {
-    // multiply this by dt
-    float angle = 0.009f;
+    glm::vec2 center{ x, y };
 
     for (Particle& p : particles_)
     {
         if (p.life <= 0)
             continue;
 
-        glm::vec2 cursorPos{ x, y };
-        glm::vec2 translatedPos{ p.position - cursorPos };
-        glm::vec2 rotated{ translatedPos.x * std::cos(angle) - translatedPos.y * std::sin(angle),
-                           translatedPos.y * std::cos(angle) + translatedPos.x * std::sin(angle) };
-        // p.position = rotated + cursorPos;
-        glm::vec2 dir{ glm::normalize(rotated + cursorPos) };
-        const float speed = Random::get(params_->particleMinSpeed, params_->particleMaxSpeed);
-        p.velocity = rotated;
+        glm::vec2 normalized{ glm::normalize(p.position - center) };
+        glm::vec2 dir{ -normalized.y, normalized.x };
+
+        p.velocity = dir * glm::length(p.velocity);
     }
 }
