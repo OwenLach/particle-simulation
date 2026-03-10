@@ -21,6 +21,7 @@ add_executable(ParticleSimulator
     src/UI.cpp
     src/ParticleSystem.cpp
     src/Window.cpp
+    src/Input.cpp
     libs/imgui/imgui.cpp
     libs/imgui/imgui_demo.cpp
     libs/imgui/imgui_draw.cpp

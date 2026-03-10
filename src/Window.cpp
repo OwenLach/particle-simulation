@@ -12,14 +12,8 @@
 Window::Window(const WindowProps& props)
     : props_{ props }
 {
-}
+    glfwInit();
 
-Window::~Window()
-{
-}
-
-void Window::create()
-{
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -54,12 +48,12 @@ void Window::create()
     // clang-format on
 }
 
-void Window::destroy()
+Window::~Window()
 {
     if (handle_)
         glfwDestroyWindow(handle_);
 
-    handle_ = nullptr;
+    glfwTerminate();
 }
 
 void Window::update()

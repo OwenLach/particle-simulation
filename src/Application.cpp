@@ -4,6 +4,7 @@
 #include "ParticleSystem.h"
 #include "Shader.h"
 #include "Settings.h"
+#include "Input.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -25,10 +26,6 @@ Application::Application(const ApplicationProps& props)
                               static_cast<float>(Settings::SCR_HEIGHT), 0.0f, // Bottom to top
                               -1.0f, 1.0f) }
 {
-    glfwInit();
-
-    window_.create();
-
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         throw std::runtime_error("Failed to initialize GLAD\n");
@@ -72,14 +69,11 @@ Application::Application(const ApplicationProps& props)
     // Background color
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-    // glm::vec2 framebufferSize{ window.getFrameBufferSize() };
-
     particleShader_->use();
 }
 
 Application::~Application()
 {
-    window_.destroy();
     ui_.cleanup();
     glfwTerminate();
 }
@@ -139,40 +133,37 @@ void Application::run()
 
 void Application::processInput()
 {
-    if (glfwGetKey(window_.getHandle(), GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    GLFWwindow* window = window_.getHandle();
+
+    if (Input::isKeyPressed(window, Key::Escape))
     {
         glfwSetWindowShouldClose(window_.getHandle(), true);
     }
 
     // If UI wants the mouse don't process input
     if (ui_.wantCaptureMouse())
-    {
         return;
-    }
 
-    double cursorX;
-    double cursorY;
-    glfwGetCursorPos(window_.getHandle(), &cursorX, &cursorY);
+    glm::vec2 cursorPos{ Input::getMousePos(window) };
+    int x = static_cast<int>(cursorPos.x);
+    int y = static_cast<int>(cursorPos.y);
 
-    int x = static_cast<int>(cursorX);
-    int y = static_cast<int>(cursorY);
-
-    if (glfwGetMouseButton(window_.getHandle(), GLFW_MOUSE_BUTTON_LEFT))
+    if (Input::isMouseButtonPressed(window, MouseButton::Left))
     {
         particleSystem_.emitParticles(x, y);
     }
 
-    if (glfwGetMouseButton(window_.getHandle(), GLFW_MOUSE_BUTTON_RIGHT))
+    if (Input::isMouseButtonPressed(window, MouseButton::Right))
     {
         particleSystem_.applyModifier(x, y);
     }
 
-    if (glfwGetKey(window_.getHandle(), GLFW_KEY_1))
+    if (Input::isKeyPressed(window, Key::D1))
     {
         particleSystem_.setParticleModifier(ParticleModifierType::Pull);
     }
 
-    if (glfwGetKey(window_.getHandle(), GLFW_KEY_2))
+    if (Input::isKeyPressed(window, Key::D2))
     {
         particleSystem_.setParticleModifier(ParticleModifierType::Circle);
     }

@@ -1,3 +1,6 @@
+// Architecutre inspiration from "TheCherno"
+// https://github.com/TheCherno/Architecture
+
 #include "Application.h"
 
 int main()
