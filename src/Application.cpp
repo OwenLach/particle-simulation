@@ -7,6 +7,7 @@
 #include "Input.h"
 #include "VertexArray.h"
 #include "VertexBuffer.h"
+#include "Renderer.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -34,24 +35,14 @@ Application::Application(const ApplicationProps& props)
     particleSystem_.setParams(&params_);
     particleShader_ = std::make_unique<Shader>("../shaders/vertex.vert", "../shaders/fragment.frag");
 
-    vao_ = std::make_unique<VertexArray>();
-    vbo_ = std::make_unique<VertexBuffer>(sizeof(Particle) * Settings::maxParticles);
+    renderer_ = std::make_unique<Renderer>();
 
     VertexLayout layout{};
     layout.push<float>("Position", 2, sizeof(Particle), offsetof(Particle, position));
     layout.push<float>("Color", 4, sizeof(Particle), offsetof(Particle, color));
 
-    vao_->setLayout(layout, *vbo_);
-
-    // Enable resizeable points through gl_PointSize in shader
-    glEnable(GL_PROGRAM_POINT_SIZE);
-
-    // Enable transparency
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    // Background color
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    renderer_->init(particleSystem_.getParticleCount() * sizeof(Particle), layout);
+    renderer_->setClearColor({ 0.0f, 0.0f, 0.0f, 1.0f });
 
     particleShader_->use();
 }
@@ -59,7 +50,6 @@ Application::Application(const ApplicationProps& props)
 Application::~Application()
 {
     ui_.cleanup();
-    glfwTerminate();
 }
 
 void Application::run()
@@ -100,15 +90,16 @@ void Application::run()
 
         // Update
         glm::vec2 framebufferSize = window_.getFrameBufferSize();
-        particleShader_->setMat4("projection", glm::ortho(0.0f, static_cast<float>(framebufferSize.x), static_cast<float>(framebufferSize.y), 0.0f, -1.0f, 1.0f));
+        particleShader_->setMat4("projection", glm::ortho(0.0f, static_cast<float>(framebufferSize.x),
+                                                          static_cast<float>(framebufferSize.y), 0.0f, -1.0f, 1.0f));
         particleShader_->setFloat("pointSize", params_.particleSize);
-        particleSystem_.update(vbo_->getID(), deltaTime);
 
-        // Clear the screen
-        glClear(GL_COLOR_BUFFER_BIT);
+        particleSystem_.update(deltaTime);
+        renderer_->update(particleSystem_.getParticleRenderData(), particleSystem_.getParticleCount() * sizeof(Particle));
+        renderer_->clear();
 
         // Render
-        particleSystem_.render(vao_->getID());
+        renderer_->drawPoints(particleSystem_.getParticleCount());
         ui_.endFrame();
 
         window_.update();

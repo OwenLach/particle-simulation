@@ -45,10 +45,8 @@ class ParticleSystem
 public:
     ParticleSystem();
 
-    void update(unsigned int vbo, float dt);
-    // render should turn into ParticleRenderer class later
-    void render(unsigned int vao) const;
-    // probably Emitter class later
+    void update(float dt);
+
     void emitParticles(int x, int y);
 
     void applyModifier(int cursorX, int cursorY);
@@ -57,7 +55,10 @@ public:
 
     void setParams(const SimulationParams* params) { params_ = params; }
     void setParticleModifier(ParticleModifierType type) { modifierType_ = type; }
+
     ParticleModifierType getCurrentModifier() const { return modifierType_; }
+    const Particle* getParticleRenderData() const { return particles_.data(); }
+    int getParticleCount() const { return static_cast<int>(particles_.size()); }
 
 private:
     void spawnParticleAt(Particle& p, int x, int y);

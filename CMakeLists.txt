@@ -22,6 +22,7 @@ add_executable(ParticleSimulator
     src/ParticleSystem.cpp
     src/Window.cpp
     src/Input.cpp
+    src/Renderer.cpp
     src/OpenGL/VertexBuffer.cpp
     src/OpenGL/VertexArray.cpp
     libs/imgui/imgui.cpp

@@ -3,7 +3,6 @@
 #include "Window.h"
 #include "UI.h"
 #include "ParticleSystem.h"
-#include <glm/glm.hpp>
 
 #include <memory>
 #include <string>
@@ -11,6 +10,7 @@
 class Shader;
 class VertexArray;
 class VertexBuffer;
+class Renderer;
 
 struct ApplicationProps
 {
@@ -32,8 +32,7 @@ private:
     Window window_;
     UI ui_;
 
-    std::unique_ptr<VertexArray> vao_;
-    std::unique_ptr<VertexBuffer> vbo_;
+    std::unique_ptr<Renderer> renderer_;
 
     std::unique_ptr<Shader> particleShader_;
     ParticleSystem particleSystem_;

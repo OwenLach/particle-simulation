@@ -23,7 +23,7 @@ ParticleSystem::ParticleSystem()
     }
 }
 
-void ParticleSystem::update(unsigned int vbo, float dt)
+void ParticleSystem::update(float dt)
 {
     const float t = static_cast<float>(glfwGetTime());
     const float r = std::sin(t) / 2.0f + 0.5f;
@@ -53,18 +53,6 @@ void ParticleSystem::update(unsigned int vbo, float dt)
 
         p.color = glm::vec4{ r, g, b, 1.0f };
     }
-
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferSubData(GL_ARRAY_BUFFER,
-                    0,
-                    sizeof(Particle) * Settings::maxParticles,
-                    particles_.data());
-}
-
-void ParticleSystem::render(unsigned int vao) const
-{
-    glBindVertexArray(vao);
-    glDrawArrays(GL_POINTS, 0, static_cast<int>(particles_.size()));
 }
 
 void ParticleSystem::emitParticles(int x, int y)

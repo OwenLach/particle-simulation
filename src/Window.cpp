@@ -1,7 +1,7 @@
 #include "Window.h"
 #include "Settings.h"
+#include "Renderer.h"
 
-#include <glad/glad.h> // Remove when take out glViewport()
 #include <GLFW/glfw3.h>
 
 #include <glm/glm.hpp>
@@ -42,8 +42,8 @@ Window::Window(const WindowProps& props)
         (void)window;
         Settings::SCR_HEIGHT = height;
         Settings::SCR_WIDTH = width;
-
-        glViewport(0, 0, static_cast<GLsizei>(width), static_cast<GLsizei>(height));
+        
+        Renderer::setViewport(width, height);
     });
     // clang-format on
 }
