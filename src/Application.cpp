@@ -5,15 +5,17 @@
 #include "Shader.h"
 #include "Settings.h"
 #include "Input.h"
+#include "VertexArray.h"
+#include "VertexBuffer.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <iostream>
 #include <memory>
+#include <cstddef>
 
 Application::Application(const ApplicationProps& props)
     : props_{ props },
@@ -21,10 +23,7 @@ Application::Application(const ApplicationProps& props)
       ui_{},
       particleSystem_{},
       params_{ 1.5f },
-      drawData_{ "Stats", "None", 0.0f },
-      projection_{ glm::ortho(0.0f, static_cast<float>(Settings::SCR_WIDTH),  // Left to right
-                              static_cast<float>(Settings::SCR_HEIGHT), 0.0f, // Bottom to top
-                              -1.0f, 1.0f) }
+      drawData_{ "Stats", "None", 0.0f }
 {
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
@@ -32,32 +31,17 @@ Application::Application(const ApplicationProps& props)
     }
 
     ui_.init(window_.getHandle(), Settings::glslVersion);
-
     particleSystem_.setParams(&params_);
-
     particleShader_ = std::make_unique<Shader>("../shaders/vertex.vert", "../shaders/fragment.frag");
 
-    // VAO
-    glGenVertexArrays(1, &vao_);
-    glBindVertexArray(vao_);
+    vao_ = std::make_unique<VertexArray>();
+    vbo_ = std::make_unique<VertexBuffer>(sizeof(Particle) * Settings::maxParticles);
 
-    // Create vertex buffer object to store vertices in video memory
-    glGenBuffers(1, &vbo_);
+    VertexLayout layout{};
+    layout.push<float>("Position", 2, sizeof(Particle), offsetof(Particle, position));
+    layout.push<float>("Color", 4, sizeof(Particle), offsetof(Particle, color));
 
-    // Bind VBO and copy vertex data into buffer memory
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_);
-    glBufferData(GL_ARRAY_BUFFER,
-                 sizeof(Particle) * Settings::maxParticles, // size of all particles in particle array (bytes)
-                 NULL,                                      // pointer to actual particle data
-                 GL_DYNAMIC_DRAW);
-
-    // Position attribute
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Particle), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    // Color attribute
-    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Particle), (void*)(4 * sizeof(float)));
-    glEnableVertexAttribArray(1);
+    vao_->setLayout(layout, *vbo_);
 
     // Enable resizeable points through gl_PointSize in shader
     glEnable(GL_PROGRAM_POINT_SIZE);
@@ -118,13 +102,13 @@ void Application::run()
         glm::vec2 framebufferSize = window_.getFrameBufferSize();
         particleShader_->setMat4("projection", glm::ortho(0.0f, static_cast<float>(framebufferSize.x), static_cast<float>(framebufferSize.y), 0.0f, -1.0f, 1.0f));
         particleShader_->setFloat("pointSize", params_.particleSize);
-        particleSystem_.update(vbo_, deltaTime);
+        particleSystem_.update(vbo_->getID(), deltaTime);
 
         // Clear the screen
         glClear(GL_COLOR_BUFFER_BIT);
 
         // Render
-        particleSystem_.render(vao_);
+        particleSystem_.render(vao_->getID());
         ui_.endFrame();
 
         window_.update();

@@ -9,6 +9,8 @@
 #include <string>
 
 class Shader;
+class VertexArray;
+class VertexBuffer;
 
 struct ApplicationProps
 {
@@ -18,11 +20,6 @@ struct ApplicationProps
 
 class Application
 {
-
-public:
-    unsigned int vao_ = 0;
-    unsigned int vbo_ = 0;
-
 public:
     Application(const ApplicationProps& props = ApplicationProps{});
     ~Application();
@@ -35,9 +32,11 @@ private:
     Window window_;
     UI ui_;
 
+    std::unique_ptr<VertexArray> vao_;
+    std::unique_ptr<VertexBuffer> vbo_;
+
     std::unique_ptr<Shader> particleShader_;
     ParticleSystem particleSystem_;
     SimulationParams params_;
     DrawData drawData_;
-    glm::mat4 projection_;
 };

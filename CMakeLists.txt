@@ -22,6 +22,8 @@ add_executable(ParticleSimulator
     src/ParticleSystem.cpp
     src/Window.cpp
     src/Input.cpp
+    src/OpenGL/VertexBuffer.cpp
+    src/OpenGL/VertexArray.cpp
     libs/imgui/imgui.cpp
     libs/imgui/imgui_demo.cpp
     libs/imgui/imgui_draw.cpp
@@ -41,6 +43,8 @@ target_compile_options(ParticleSimulator PRIVATE
 
 # Include directories
 target_include_directories(ParticleSimulator PRIVATE 
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/OpenGL
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/libs/imgui
 )
