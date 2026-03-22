@@ -44,6 +44,7 @@ void UI::draw(SimulationParams& params, DrawData& drawData)
     // ImGui::Begin("Stats");
     ImGui::Begin(drawData.title.c_str());
     ImGui::TextColored({ 1.0f, 0.0f, 0.0f, 1.0f }, "FPS: %.2f", drawData.fps);
+    ImGui::Text("Particle Count: %d", drawData.activeParticles);
     ImGui::Text("Current Modifier: %s", drawData.activeModifier.c_str());
 
     ImGui::SliderFloat("Particle Size", &params.particleSize, 0.1f, 5.0f);

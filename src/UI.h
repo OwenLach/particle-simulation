@@ -9,7 +9,8 @@ struct DrawData
 {
     std::string title{};
     std::string activeModifier{};
-    float fps{};
+    float fps = 0;
+    int activeParticles = 0;
 };
 
 class UI

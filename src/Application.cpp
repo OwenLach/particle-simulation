@@ -24,7 +24,7 @@ Application::Application(const ApplicationProps& props)
       ui_{},
       particleSystem_{},
       params_{ 1.5f },
-      drawData_{ "Stats", "None", 0.0f }
+      drawData_{ "Stats", "None", 0.0f, 0 }
 {
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
@@ -84,6 +84,7 @@ void Application::run()
 
         drawData_.fps = fps;
         drawData_.activeModifier = toString(particleSystem_.getCurrentModifier());
+        drawData_.activeParticles = particleSystem_.getActiveParticleCount();
 
         ui_.newFrame();
         ui_.draw(params_, drawData_);

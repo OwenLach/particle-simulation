@@ -127,3 +127,14 @@ void ParticleSystem::circleParticlesAround(int x, int y)
         p.velocity = dir * glm::length(p.velocity);
     }
 }
+
+int ParticleSystem::getActiveParticleCount() const
+{
+    int count = 0;
+    for (const auto& p : particles_)
+    {
+        if (p.life > 0.0f)
+            count++;
+    }
+    return count;
+}

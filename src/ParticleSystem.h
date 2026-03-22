@@ -59,6 +59,7 @@ public:
     ParticleModifierType getCurrentModifier() const { return modifierType_; }
     const Particle* getParticleRenderData() const { return particles_.data(); }
     int getParticleCount() const { return static_cast<int>(particles_.size()); }
+    int getActiveParticleCount() const;
 
 private:
     void spawnParticleAt(Particle& p, int x, int y);
