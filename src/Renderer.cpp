@@ -4,6 +4,7 @@
 
 #include <glad/glad.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 void Renderer::init(unsigned int bufferSize, const VertexLayout& layout)
 {
@@ -30,6 +31,17 @@ void Renderer::update(const void* data, std::size_t size) const
 {
     vertexBuffer_->bind();
     glBufferSubData(GL_ARRAY_BUFFER, 0, size, data);
+}
+
+void Renderer::setProjectionMatrix(float width, float height)
+{
+    projectionMatrix_ = glm::ortho(0.0f, width, height, 0.0f, -1.0f, 1.0f);
+}
+
+void Renderer::setFramebufferSize(int width, int height)
+{
+    framebuffer_.width = width;
+    framebuffer_.height = height;
 }
 
 void Renderer::setClearColor(const glm::vec4& color) const

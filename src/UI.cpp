@@ -41,7 +41,6 @@ void UI::newFrame()
 
 void UI::draw(SimulationParams& params, DrawData& drawData)
 {
-    // ImGui::Begin("Stats");
     ImGui::Begin(drawData.title.c_str());
     ImGui::TextColored({ 1.0f, 0.0f, 0.0f, 1.0f }, "FPS: %.2f", drawData.fps);
     ImGui::Text("Particle Count: %d", drawData.activeParticles);

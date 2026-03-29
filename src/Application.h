@@ -5,35 +5,30 @@
 #include "ParticleSystem.h"
 
 #include <memory>
-#include <string>
+#include <string_view>
 
 class Shader;
 class VertexArray;
 class VertexBuffer;
 class Renderer;
 
-struct ApplicationProps
-{
-    std::string title = "Application";
-    WindowProps windowProps{};
-};
-
 class Application
 {
 public:
-    Application(const ApplicationProps& props = ApplicationProps{});
+    Application(int screenWidth, int screenHeight, std::string_view title);
     ~Application();
 
     void run();
     void processInput();
 
 private:
-    ApplicationProps props_;
+    void onWindowResize(int height, int width);
+
+private:
     Window window_;
     UI ui_;
 
     std::unique_ptr<Renderer> renderer_;
-
     std::unique_ptr<Shader> particleShader_;
     ParticleSystem particleSystem_;
     SimulationParams params_;

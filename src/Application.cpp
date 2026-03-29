@@ -17,15 +17,22 @@
 #include <iostream>
 #include <memory>
 #include <cstddef>
+#include <cstdlib>
 
-Application::Application(const ApplicationProps& props)
-    : props_{ props },
-      window_{ props.windowProps },
+Application::Application(int screenWidth, int screenHeight, std::string_view title)
+    : window_{ screenWidth, screenHeight, title },
       ui_{},
       particleSystem_{},
       params_{ 1.5f },
       drawData_{ "Stats", "None", 0.0f, 0 }
 {
+    // clang-format off
+    window_.setResizeCallback([this](int width, int height) 
+    { 
+        onWindowResize(width, height); 
+    });
+    // clang-format on
+
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         throw std::runtime_error("Failed to initialize GLAD\n");
@@ -41,10 +48,13 @@ Application::Application(const ApplicationProps& props)
     layout.push<float>("Position", 2, sizeof(Particle), offsetof(Particle, position));
     layout.push<float>("Color", 4, sizeof(Particle), offsetof(Particle, color));
 
-    renderer_->init(particleSystem_.getParticleCount() * sizeof(Particle), layout);
+    renderer_->init(static_cast<unsigned int>(particleSystem_.getParticleCount() * sizeof(Particle)), layout);
     renderer_->setClearColor({ 0.0f, 0.0f, 0.0f, 1.0f });
 
     particleShader_->use();
+
+    // Call callback manually to setup projection matrix and viewport
+    onWindowResize(screenWidth, screenHeight);
 }
 
 Application::~Application()
@@ -79,7 +89,6 @@ void Application::run()
         }
 
         // Input
-        glfwPollEvents();
         processInput();
 
         drawData_.fps = fps;
@@ -89,13 +98,8 @@ void Application::run()
         ui_.newFrame();
         ui_.draw(params_, drawData_);
 
-        // Update
-        glm::vec2 framebufferSize = window_.getFrameBufferSize();
-        particleShader_->setMat4("projection", glm::ortho(0.0f, static_cast<float>(framebufferSize.x),
-                                                          static_cast<float>(framebufferSize.y), 0.0f, -1.0f, 1.0f));
         particleShader_->setFloat("pointSize", params_.particleSize);
-
-        particleSystem_.update(deltaTime);
+        particleSystem_.update(deltaTime, renderer_->getFramebufferSize());
         renderer_->update(particleSystem_.getParticleRenderData(), particleSystem_.getParticleCount() * sizeof(Particle));
         renderer_->clear();
 
@@ -103,12 +107,14 @@ void Application::run()
         renderer_->drawPoints(particleSystem_.getParticleCount());
         ui_.endFrame();
 
-        window_.update();
+        window_.swapBuffers();
     }
 }
 
 void Application::processInput()
 {
+    glfwPollEvents();
+
     GLFWwindow* window = window_.getHandle();
 
     if (Input::isKeyPressed(window, Key::Escape))
@@ -143,4 +149,13 @@ void Application::processInput()
     {
         particleSystem_.setParticleModifier(ParticleModifierType::Circle);
     }
+}
+
+void Application::onWindowResize(int width, int height)
+{
+    renderer_->setViewport(width, height);
+    renderer_->setProjectionMatrix(static_cast<float>(width), static_cast<float>(height));
+    renderer_->setFramebufferSize(width, height);
+
+    particleShader_->setMat4("projection", renderer_->getProjectionMarix());
 }

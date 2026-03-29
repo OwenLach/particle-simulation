@@ -9,8 +9,8 @@
 #include <iostream>
 #include <string>
 
-Window::Window(const WindowProps& props)
-    : props_{ props }
+Window::Window(int screenWidth, int screenHeight, std::string_view title)
+    : props_{ screenWidth, screenHeight, std::string{ title } }
 {
     glfwInit();
 
@@ -26,7 +26,6 @@ Window::Window(const WindowProps& props)
     }
 
     glfwMakeContextCurrent(handle_);
-
     glfwSetWindowUserPointer(handle_, this);
 
     // clang-format off
@@ -39,11 +38,9 @@ Window::Window(const WindowProps& props)
 
     glfwSetFramebufferSizeCallback(handle_, [](GLFWwindow* window, int width, int height)
     {
-        (void)window;
-        Settings::SCR_HEIGHT = height;
-        Settings::SCR_WIDTH = width;
-        
-        Renderer::setViewport(width, height);
+        Window* handle = static_cast<Window*>(glfwGetWindowUserPointer(window));
+        if (handle->resizeCallback_)
+            handle->resizeCallback_(width, height);
     });
     // clang-format on
 }
@@ -56,18 +53,9 @@ Window::~Window()
     glfwTerminate();
 }
 
-void Window::update()
+void Window::swapBuffers()
 {
     glfwSwapBuffers(handle_);
-}
-
-glm::vec2 Window::getFrameBufferSize() const
-{
-    int width;
-    int height;
-    glfwGetFramebufferSize(handle_, &width, &height);
-
-    return { width, height };
 }
 
 bool Window::shouldClose() const

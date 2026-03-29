@@ -45,8 +45,7 @@ class ParticleSystem
 public:
     ParticleSystem();
 
-    void update(float dt);
-
+    void update(float dt, const glm::ivec2& bounds);
     void emitParticles(int x, int y);
 
     void applyModifier(int cursorX, int cursorY);
@@ -65,8 +64,8 @@ private:
     void spawnParticleAt(Particle& p, int x, int y);
 
 private:
-    std::vector<Particle> particles_{};
-    const SimulationParams* params_{};
-    ParticleModifierType modifierType_{ ParticleModifierType::None };
+    std::vector<Particle> particles_;
+    ParticleModifierType modifierType_;
+    const SimulationParams* params_{ nullptr };
     int particleIndex_ = 0;
 };

@@ -8,22 +8,12 @@
 #include <cmath>
 
 ParticleSystem::ParticleSystem()
+    : particles_(Settings::maxParticles),
+      modifierType_{ ParticleModifierType::None }
 {
-    particles_.reserve(Settings::maxParticles);
-
-    for (int i = 0; i < Settings::maxParticles; ++i)
-    {
-        Particle p{
-            .position{ static_cast<float>(Settings::SCR_WIDTH) / 2.0f, static_cast<float>(Settings::SCR_HEIGHT) / 2.0f },
-            .velocity{ 0.0f },
-            .color{ 1.0f, 1.0f, 1.0f, 0.0f },
-            .life{ 0.0f }
-        };
-        particles_.push_back(p);
-    }
 }
 
-void ParticleSystem::update(float dt)
+void ParticleSystem::update(float dt, const glm::ivec2& bounds)
 {
     const float t = static_cast<float>(glfwGetTime());
     const float r = std::sin(t) / 2.0f + 0.5f;
@@ -41,12 +31,12 @@ void ParticleSystem::update(float dt)
         p.life -= dt;
         p.position += p.velocity * dt;
 
-        if (p.position.x >= static_cast<float>(Settings::SCR_WIDTH) || p.position.x <= 0)
+        if (p.position.x >= static_cast<float>(bounds.x) || p.position.x <= 0)
         {
             p.velocity.x *= -1;
         }
 
-        if (p.position.y >= static_cast<float>(Settings::SCR_HEIGHT) || p.position.y <= 0)
+        if (p.position.y >= static_cast<float>(bounds.y) || p.position.y <= 0)
         {
             p.velocity.y *= -1;
         }
