@@ -2,6 +2,8 @@
 
 #include <glm/glm.hpp>
 
+#include <unordered_map>
+
 struct GLFWwindow;
 
 enum class Key
@@ -31,7 +33,14 @@ enum class MouseButton
 class Input
 {
 public:
+    static void init(GLFWwindow* window);
+
+    static void registerKeyCallback(Key key, std::function<void()> fn);
+    static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+
     static bool isKeyPressed(GLFWwindow* window, Key key);
     static bool isMouseButtonPressed(GLFWwindow* window, MouseButton button);
     static glm::vec2 getMousePos(GLFWwindow* window);
+
+    static std::unordered_map<int, std::function<void()>> keyCallbacks_;
 };
