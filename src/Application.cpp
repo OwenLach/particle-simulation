@@ -6,7 +6,6 @@
 #include "Settings.h"
 #include "Input.h"
 #include "VertexArray.h"
-#include "VertexBuffer.h"
 #include "Renderer.h"
 
 #include <glad/glad.h>
@@ -14,7 +13,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <iostream>
 #include <memory>
 #include <cstddef>
 #include <cstdlib>
@@ -23,13 +21,39 @@ Application::Application(int screenWidth, int screenHeight, std::string_view tit
     : window_{ screenWidth, screenHeight, title },
       ui_{},
       particleSystem_{},
-      params_{ 1.5f },
+      params_{
+          .particleSize = Settings::particleSize,
+          .particleMinSpeed = Settings::particleMinSpeed,
+          .particleMaxSpeed = Settings::particleMaxSpeed,
+          .particleMinLife = Settings::particleMinLife,
+          .particleMaxLife = Settings::particleMaxLife,
+          .emissionRate = Settings::emissionRate,
+          .particlesFrozen = Settings::particlesFrozen
+      },
       drawData_{ "Stats", "None", 0.0f, 0 }
 {
     // clang-format off
     window_.setResizeCallback([this](int width, int height) 
     { 
         onWindowResize(width, height); 
+    });
+
+    Input::init(window_.getHandle());
+
+    Input::registerKeyCallback(Key::F, [this](){
+        particleSystem_.toggleParticleFreeze();
+    });
+
+    Input::registerKeyCallback(Key::C, [this](){
+        particleSystem_.clearParticles();
+    });
+
+    Input::registerKeyCallback(Key::D1, [this](){
+        particleSystem_.setParticleModifier(ParticleModifierType::Pull);
+    });
+
+    Input::registerKeyCallback(Key::D2, [this](){
+        particleSystem_.setParticleModifier(ParticleModifierType::Circle);
     });
     // clang-format on
 
@@ -138,16 +162,6 @@ void Application::processInput()
     if (Input::isMouseButtonPressed(window, MouseButton::Right))
     {
         particleSystem_.applyModifier(x, y);
-    }
-
-    if (Input::isKeyPressed(window, Key::D1))
-    {
-        particleSystem_.setParticleModifier(ParticleModifierType::Pull);
-    }
-
-    if (Input::isKeyPressed(window, Key::D2))
-    {
-        particleSystem_.setParticleModifier(ParticleModifierType::Circle);
     }
 }
 

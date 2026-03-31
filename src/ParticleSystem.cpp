@@ -15,6 +15,9 @@ ParticleSystem::ParticleSystem()
 
 void ParticleSystem::update(float dt, const glm::ivec2& bounds)
 {
+    if (params_->particlesFrozen)
+        return;
+
     const float t = static_cast<float>(glfwGetTime());
     const float r = std::sin(t) / 2.0f + 0.5f;
     const float g = (std::sin(t + 2.0f)) / 2.0f + 0.5f;
@@ -115,6 +118,20 @@ void ParticleSystem::circleParticlesAround(int x, int y)
         glm::vec2 dir{ -normalized.y, normalized.x };
 
         p.velocity = dir * glm::length(p.velocity);
+    }
+}
+
+void ParticleSystem::toggleParticleFreeze()
+{
+    params_->particlesFrozen = !params_->particlesFrozen;
+}
+
+void ParticleSystem::clearParticles()
+{
+    if (!params_->particlesFrozen)
+    {
+        for (Particle& p : particles_)
+            p.life = 0.0f;
     }
 }
 

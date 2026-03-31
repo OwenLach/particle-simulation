@@ -42,21 +42,18 @@ void UI::newFrame()
 void UI::draw(SimulationParams& params, DrawData& drawData)
 {
     ImGui::Begin(drawData.title.c_str());
+
     ImGui::TextColored({ 1.0f, 0.0f, 0.0f, 1.0f }, "FPS: %.2f", drawData.fps);
     ImGui::Text("Particle Count: %d", drawData.activeParticles);
+    ImGui::Text((params.particlesFrozen) ? "Particles Frozen: True" : "Particles Frozen: False");
     ImGui::Text("Current Modifier: %s", drawData.activeModifier.c_str());
 
     ImGui::SliderFloat("Particle Size", &params.particleSize, 0.1f, 5.0f);
-
     ImGui::SliderInt("Emission Rate", &params.emissionRate, 1, 40);
-
     ImGui::SliderFloat("Particle Min Speed", &params.particleMinSpeed, 1.0f, 100.0f);
     ImGui::SliderFloat("Particle Max Speed", &params.particleMaxSpeed, 100.0f, 200.0f);
-
     ImGui::SliderFloat("Particle Min Life", &params.particleMinLife, 1.0f, 15.0f);
     ImGui::SliderFloat("Particle Max Life", &params.particleMaxLife, 15.0f, 30.0f);
-
-    // ImGui::ShowDemoWindow();
 
     ImGui::End();
 }

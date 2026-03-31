@@ -1,13 +1,10 @@
 #include "Window.h"
-#include "Settings.h"
-#include "Renderer.h"
 
 #include <GLFW/glfw3.h>
-
 #include <glm/glm.hpp>
 
-#include <iostream>
 #include <string>
+#include <stdexcept>
 
 Window::Window(int screenWidth, int screenHeight, std::string_view title)
     : props_{ screenWidth, screenHeight, std::string{ title } }

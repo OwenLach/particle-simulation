@@ -8,12 +8,13 @@
 
 struct SimulationParams
 {
-    float particleSize = 1.5f;
-    float particleMinSpeed = 10.0f;
-    float particleMaxSpeed = 100.0f;
-    float particleMinLife = 5.0f;
-    float particleMaxLife = 30.0f;
-    int emissionRate = 10;
+    float particleSize;
+    float particleMinSpeed;
+    float particleMaxSpeed;
+    float particleMinLife;
+    float particleMaxLife;
+    int emissionRate;
+    bool particlesFrozen;
 };
 
 struct Particle
@@ -51,8 +52,10 @@ public:
     void applyModifier(int cursorX, int cursorY);
     void pullParticlesTo(int x, int y);
     void circleParticlesAround(int x, int y);
+    void toggleParticleFreeze();
+    void clearParticles();
 
-    void setParams(const SimulationParams* params) { params_ = params; }
+    void setParams(SimulationParams* params) { params_ = params; }
     void setParticleModifier(ParticleModifierType type) { modifierType_ = type; }
 
     ParticleModifierType getCurrentModifier() const { return modifierType_; }
@@ -66,6 +69,7 @@ private:
 private:
     std::vector<Particle> particles_;
     ParticleModifierType modifierType_;
-    const SimulationParams* params_{ nullptr };
+    SimulationParams* params_{ nullptr };
+
     int particleIndex_ = 0;
 };
