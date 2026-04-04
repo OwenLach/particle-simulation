@@ -74,6 +74,9 @@ void ParticleSystem::applyModifier(int cursorX, int cursorY)
     case ParticleModifierType::Circle:
         circleParticlesAround(cursorX, cursorY);
         break;
+    case ParticleModifierType::Repel:
+        repelParticles(cursorX, cursorY);
+        break;
     }
 }
 
@@ -132,6 +135,20 @@ void ParticleSystem::clearParticles()
     {
         for (Particle& p : particles_)
             p.life = 0.0f;
+    }
+}
+
+void ParticleSystem::repelParticles(int x, int y)
+{
+    for (Particle& p : particles_)
+    {
+        if (p.life <= 0)
+            continue;
+
+        glm::vec2 cursorPos{ x, y };
+        glm::vec2 dir{ glm::normalize(cursorPos - p.position) };
+
+        p.velocity = -dir * glm::length(p.velocity);
     }
 }
 

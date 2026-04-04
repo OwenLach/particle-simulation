@@ -29,13 +29,13 @@ enum class ParticleModifierType
 {
     None,
     Pull,
-    Circle
+    Circle,
+    Repel,
 };
-
-constexpr auto modifierNames{ std::to_array<std::string_view>({ "None", "Pull", "Circle" }) };
 
 inline std::string_view toString(ParticleModifierType type)
 {
+    constexpr static auto modifierNames{ std::to_array<std::string_view>({ "None", "Pull", "Circle", "Repel" }) };
     return modifierNames[static_cast<std::size_t>(type)];
 }
 
@@ -54,6 +54,7 @@ public:
     void circleParticlesAround(int x, int y);
     void toggleParticleFreeze();
     void clearParticles();
+    void repelParticles(int x, int y);
 
     void setParams(SimulationParams* params) { params_ = params; }
     void setParticleModifier(ParticleModifierType type) { modifierType_ = type; }

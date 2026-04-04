@@ -55,6 +55,14 @@ Application::Application(int screenWidth, int screenHeight, std::string_view tit
     Input::registerKeyCallback(Key::D2, [this](){
         particleSystem_.setParticleModifier(ParticleModifierType::Circle);
     });
+
+    Input::registerKeyCallback(Key::D3, [this](){
+        particleSystem_.setParticleModifier(ParticleModifierType::Repel);
+    });
+
+    Input::registerKeyCallback(Key::Escape, [this](){
+        glfwSetWindowShouldClose(window_.getHandle(), true);
+    });
     // clang-format on
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -140,11 +148,6 @@ void Application::processInput()
     glfwPollEvents();
 
     GLFWwindow* window = window_.getHandle();
-
-    if (Input::isKeyPressed(window, Key::Escape))
-    {
-        glfwSetWindowShouldClose(window_.getHandle(), true);
-    }
 
     // If UI wants the mouse don't process input
     if (ui_.wantCaptureMouse())
