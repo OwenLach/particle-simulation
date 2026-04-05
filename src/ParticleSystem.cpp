@@ -34,14 +34,29 @@ void ParticleSystem::update(float dt, const glm::ivec2& bounds)
         p.life -= dt;
         p.position += p.velocity * dt;
 
-        if (p.position.x >= static_cast<float>(bounds.x) || p.position.x <= 0)
+        if (p.position.x >= static_cast<float>(bounds.x))
         {
             p.velocity.x *= -1;
+            p.position.x = static_cast<float>(bounds.x);
         }
 
-        if (p.position.y >= static_cast<float>(bounds.y) || p.position.y <= 0)
+        if (p.position.x <= 0)
+        {
+            p.velocity.x *= -1;
+            p.position.x = 0;
+        }
+
+        if (p.position.y >= static_cast<float>(bounds.y))
+        {
+
+            p.velocity.y *= -1;
+            p.position.y = static_cast<float>(bounds.y);
+        }
+
+        if (p.position.y <= 0)
         {
             p.velocity.y *= -1;
+            p.position.y = 0;
         }
 
         p.color = glm::vec4{ r, g, b, 1.0f };
