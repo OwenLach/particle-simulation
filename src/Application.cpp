@@ -80,7 +80,7 @@ Application::Application(int screenWidth, int screenHeight, std::string_view tit
     layout.push<float>("Position", 2, sizeof(Particle), offsetof(Particle, position));
     layout.push<float>("Color", 4, sizeof(Particle), offsetof(Particle, color));
 
-    renderer_->init(static_cast<unsigned int>(particleSystem_.getParticleCount() * sizeof(Particle)), layout);
+    renderer_->init(static_cast<unsigned int>(Settings::maxParticles * sizeof(Particle)), layout);
     renderer_->setClearColor({ 0.0f, 0.0f, 0.0f, 1.0f });
 
     particleShader_->use();
@@ -132,11 +132,11 @@ void Application::run()
 
         particleShader_->setFloat("pointSize", params_.particleSize);
         particleSystem_.update(deltaTime, renderer_->getFramebufferSize());
-        renderer_->update(particleSystem_.getParticleRenderData(), particleSystem_.getParticleCount() * sizeof(Particle));
+        renderer_->update(particleSystem_.getParticleRenderData(), particleSystem_.getActiveParticleCount() * sizeof(Particle));
         renderer_->clear();
 
         // Render
-        renderer_->drawPoints(particleSystem_.getParticleCount());
+        renderer_->drawPoints(particleSystem_.getActiveParticleCount());
         ui_.endFrame();
 
         window_.swapBuffers();

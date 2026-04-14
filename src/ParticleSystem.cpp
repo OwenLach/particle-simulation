@@ -23,11 +23,22 @@ void ParticleSystem::update(float dt, const glm::ivec2& bounds)
     const float g = (std::sin(t + 2.0f)) / 2.0f + 0.5f;
     const float b = (std::sin(t + 4.0f)) / 2.0f + 0.5f;
 
-    for (Particle& p : particles_)
+    // Only loop through active count since alive particles are packed together
+
+    for (int i = 0; i < activeCount_;)
     {
+        Particle& p = particles_[i];
+
+        // Check if particle has died
         if (p.life <= 0)
         {
             p.color = glm::vec4{ 1.0f, 1.0f, 1.0f, 0.0f };
+
+            // Swap particle with last alive particle
+            // Could potentially be swapping with a dead particle but that will be handled next iteration
+            std::swap(particles_[i], particles_[activeCount_ - 1]);
+            activeCount_--;
+
             continue;
         }
 
@@ -60,6 +71,8 @@ void ParticleSystem::update(float dt, const glm::ivec2& bounds)
         }
 
         p.color = glm::vec4{ r, g, b, 1.0f };
+
+        i++;
     }
 }
 
@@ -67,13 +80,12 @@ void ParticleSystem::emitParticles(int x, int y)
 {
     for (int i = 0; i < params_->emissionRate; ++i)
     {
-        Particle& p = particles_[particleIndex_];
-        particleIndex_ = (particleIndex_ + 1) % Settings::maxParticles;
+        if (activeCount_ == Settings::maxParticles)
+            return;
 
-        if (p.life <= 0)
-        {
-            spawnParticleAt(p, x, y);
-        }
+        Particle& p = particles_[activeCount_];
+        spawnParticleAt(p, x, y);
+        activeCount_++;
     }
 }
 
@@ -165,15 +177,4 @@ void ParticleSystem::repelParticles(int x, int y)
 
         p.velocity = -dir * glm::length(p.velocity);
     }
-}
-
-int ParticleSystem::getActiveParticleCount() const
-{
-    int count = 0;
-    for (const auto& p : particles_)
-    {
-        if (p.life > 0.0f)
-            count++;
-    }
-    return count;
 }

@@ -61,16 +61,16 @@ public:
 
     ParticleModifierType getCurrentModifier() const { return modifierType_; }
     const Particle* getParticleRenderData() const { return particles_.data(); }
-    int getParticleCount() const { return static_cast<int>(particles_.size()); }
-    int getActiveParticleCount() const;
+    int getActiveParticleCount() const { return activeCount_; }
 
 private:
     void spawnParticleAt(Particle& p, int x, int y);
 
 private:
+    // probably use std::array<Particle, Settings::maxParticles>
     std::vector<Particle> particles_;
     ParticleModifierType modifierType_;
     SimulationParams* params_{ nullptr };
 
-    int particleIndex_ = 0;
+    int activeCount_ = 0;
 };
