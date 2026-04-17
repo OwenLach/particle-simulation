@@ -23,6 +23,7 @@ Window::Window(int screenWidth, int screenHeight, std::string_view title)
     }
 
     glfwMakeContextCurrent(handle_);
+    glfwSwapInterval(0);
     glfwSetWindowUserPointer(handle_, this);
 
     // clang-format off

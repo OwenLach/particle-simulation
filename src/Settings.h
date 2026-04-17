@@ -3,7 +3,7 @@
 namespace Settings
 {
     inline constexpr const char* glslVersion = "#version 330 core";
-    inline constexpr int maxParticles = 100'000;
+    inline constexpr int maxParticles = 1'000'000;
 
     // Simulation Parameters
     inline constexpr float particleSize = 1.5f;
@@ -11,6 +11,6 @@ namespace Settings
     inline constexpr float particleMaxSpeed = 100.0f;
     inline constexpr float particleMinLife = 5.0f;
     inline constexpr float particleMaxLife = 30.0f;
-    inline constexpr int emissionRate = 10;
+    inline constexpr int emissionRate = 1000;
     inline constexpr bool particlesFrozen = false;
 };

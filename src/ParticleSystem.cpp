@@ -76,16 +76,27 @@ void ParticleSystem::update(float dt, const glm::ivec2& bounds)
     }
 }
 
-void ParticleSystem::emitParticles(int x, int y)
+void ParticleSystem::emitParticles(int x, int y, float deltaTime)
 {
-    for (int i = 0; i < params_->emissionRate; ++i)
+    // Maybe put into member for seperate emitters
+    static float accumulator = 0;
+
+    const float step = 1 / static_cast<float>(params_->emissionRate);
+
+    accumulator += deltaTime;
+    while (accumulator >= step)
     {
         if (activeCount_ == Settings::maxParticles)
+        {
+            accumulator = 0;
             return;
+        }
 
         Particle& p = particles_[activeCount_];
         spawnParticleAt(p, x, y);
         activeCount_++;
+
+        accumulator -= step;
     }
 }
 

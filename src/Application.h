@@ -19,7 +19,7 @@ public:
     ~Application();
 
     void run();
-    void processInput();
+    void processInput(float deltaTime);
 
 private:
     void onWindowResize(int height, int width);

@@ -121,7 +121,7 @@ void Application::run()
         }
 
         // Input
-        processInput();
+        processInput(deltaTime);
 
         drawData_.fps = fps;
         drawData_.activeModifier = toString(particleSystem_.getCurrentModifier());
@@ -143,7 +143,7 @@ void Application::run()
     }
 }
 
-void Application::processInput()
+void Application::processInput(float deltaTime)
 {
     glfwPollEvents();
 
@@ -159,7 +159,7 @@ void Application::processInput()
 
     if (Input::isMouseButtonPressed(window, MouseButton::Left))
     {
-        particleSystem_.emitParticles(x, y);
+        particleSystem_.emitParticles(x, y, deltaTime);
     }
 
     if (Input::isMouseButtonPressed(window, MouseButton::Right))

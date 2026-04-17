@@ -47,7 +47,7 @@ public:
     ParticleSystem();
 
     void update(float dt, const glm::ivec2& bounds);
-    void emitParticles(int x, int y);
+    void emitParticles(int x, int y, float deltaTime);
 
     void applyModifier(int cursorX, int cursorY);
     void pullParticlesTo(int x, int y);
