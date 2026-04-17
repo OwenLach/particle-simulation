@@ -2,6 +2,8 @@
 #include "Settings.h"
 #include "Random.h"
 
+#include "ScopedTimer.h"
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
@@ -134,15 +136,14 @@ void ParticleSystem::spawnParticleAt(Particle& p, int x, int y)
 
 void ParticleSystem::pullParticlesTo(int x, int y)
 {
-    for (Particle& p : particles_)
+    for (int i = 0; i < activeCount_; ++i)
     {
-        if (p.life <= 0)
-            continue;
+        Particle& particle = particles_[i];
 
         glm::vec2 cursorPos{ x, y };
-        glm::vec2 dir{ glm::normalize(cursorPos - p.position) };
+        glm::vec2 dir{ glm::normalize(cursorPos - particle.position) };
 
-        p.velocity = dir * glm::length(p.velocity);
+        particle.velocity = dir * glm::length(particle.velocity);
     }
 }
 
@@ -150,15 +151,14 @@ void ParticleSystem::circleParticlesAround(int x, int y)
 {
     glm::vec2 center{ x, y };
 
-    for (Particle& p : particles_)
+    for (int i = 0; i < activeCount_; ++i)
     {
-        if (p.life <= 0)
-            continue;
+        Particle& particle = particles_[i];
 
-        glm::vec2 normalized{ glm::normalize(p.position - center) };
+        glm::vec2 normalized{ glm::normalize(particle.position - center) };
         glm::vec2 dir{ -normalized.y, normalized.x };
 
-        p.velocity = dir * glm::length(p.velocity);
+        particle.velocity = dir * glm::length(particle.velocity);
     }
 }
 
@@ -171,21 +171,19 @@ void ParticleSystem::clearParticles()
 {
     if (!params_->particlesFrozen)
     {
-        for (Particle& p : particles_)
-            p.life = 0.0f;
+        for (int i = 0; i < activeCount_; ++i)
+            particles_[i].life = 0.0f;
     }
 }
 
 void ParticleSystem::repelParticles(int x, int y)
 {
-    for (Particle& p : particles_)
+    for (int i = 0; i < activeCount_; ++i)
     {
-        if (p.life <= 0)
-            continue;
-
+        Particle& particle = particles_[i];
         glm::vec2 cursorPos{ x, y };
-        glm::vec2 dir{ glm::normalize(cursorPos - p.position) };
+        glm::vec2 dir{ glm::normalize(cursorPos - particle.position) };
 
-        p.velocity = -dir * glm::length(p.velocity);
+        particle.velocity = -dir * glm::length(particle.velocity);
     }
 }
